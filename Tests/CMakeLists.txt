@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(LabBenchPowerSupply_FirmwareTests C CXX)
+project(AvrAsyncCoreLibs_Tests C CXX)
 
 find_package(GTest REQUIRED)
 enable_testing()
@@ -30,51 +30,46 @@ endif()
 
 
 
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-add_subdirectory( ${CMAKE_SOURCE_DIR}/../Drivers/Adc/Tests
-    ${CMAKE_BINARY_DIR}/Tests/Adc
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
+add_subdirectory( ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/Adc/Tests
+    ${CMAKE_CURRENT_BINARY_DIR}/Tests/Adc
 )
 
 # Memory utils library
-add_subdirectory( ${CMAKE_SOURCE_DIR}/../Utils
-    ${CMAKE_BINARY_DIR}/Tests/Utils
+add_subdirectory( ${CMAKE_CURRENT_SOURCE_DIR}/../Utils
+    ${CMAKE_CURRENT_BINARY_DIR}/Tests/Utils
 )
 
 # Timer drivers
-add_subdirectory( ${CMAKE_SOURCE_DIR}/../Drivers/Timers/Timer_generic/Tests
-    ${CMAKE_BINARY_DIR}/Tests/Drivers/Timers/Timer_generic
+add_subdirectory( ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/Timers/Timer_generic/Tests
+    ${CMAKE_CURRENT_BINARY_DIR}/Tests/Drivers/Timers/Timer_generic
 )
-add_subdirectory( ${CMAKE_SOURCE_DIR}/../Drivers/Timers/Timer_8_bit/Tests
-    ${CMAKE_BINARY_DIR}/Tests/Drivers/Timers/Timer_8_bit
+add_subdirectory( ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/Timers/Timer_8_bit/Tests
+    ${CMAKE_CURRENT_BINARY_DIR}/Tests/Drivers/Timers/Timer_8_bit
 )
-add_subdirectory( ${CMAKE_SOURCE_DIR}/../Drivers/Timers/Timer_8_bit_async/Tests
-    ${CMAKE_BINARY_DIR}/Tests/Drivers/Timers/Timer_8_bit_async
+add_subdirectory( ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/Timers/Timer_8_bit_async/Tests
+    ${CMAKE_CURRENT_BINARY_DIR}/Tests/Drivers/Timers/Timer_8_bit_async
 )
-add_subdirectory( ${CMAKE_SOURCE_DIR}/../Drivers/Timers/Timer_16_bit/Tests
-    ${CMAKE_BINARY_DIR}/Tests/Drivers/Timers/Timer_16_bit
+add_subdirectory( ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/Timers/Timer_16_bit/Tests
+    ${CMAKE_CURRENT_BINARY_DIR}/Tests/Drivers/Timers/Timer_16_bit
 )
 
 # I2C driver
-add_subdirectory( ${CMAKE_SOURCE_DIR}/../Drivers/I2c/Tests
-    ${CMAKE_BINARY_DIR}/Tests/Drivers/I2c
+add_subdirectory( ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/I2c/Tests
+    ${CMAKE_CURRENT_BINARY_DIR}/Tests/Drivers/I2c
 )
 
 # LCD Screen HD44780 driver
-add_subdirectory( ${CMAKE_SOURCE_DIR}/../Drivers/Lcd_screen/Tests
-    ${CMAKE_BINARY_DIR}/Tests/Drivers/Lcd_screen
+add_subdirectory( ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/Lcd_screen/Tests
+    ${CMAKE_CURRENT_BINARY_DIR}/Tests/Drivers/Lcd_screen
 )
 
 # Io driver
-add_subdirectory( ${CMAKE_SOURCE_DIR}/../Drivers/Io/Tests
-    ${CMAKE_BINARY_DIR}/Tests/Drivers/Io
-)
-
-# Thermistor driver
-add_subdirectory( ${CMAKE_SOURCE_DIR}/../Sensors/Thermistor/Tests
-    ${CMAKE_BINARY_DIR}/Tests/Sensors/Thermistor
+add_subdirectory( ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/Io/Tests
+    ${CMAKE_CURRENT_BINARY_DIR}/Tests/Drivers/Io
 )
 
 # Modules
-add_subdirectory( ${CMAKE_SOURCE_DIR}/../Modules/Timebase/Tests
-    ${CMAKE_BINARY_DIR}/Tests/Modules/Timebase
+add_subdirectory( ${CMAKE_CURRENT_SOURCE_DIR}/../Modules/Timebase/Tests
+    ${CMAKE_CURRENT_BINARY_DIR}/Tests/Modules/Timebase
 )
