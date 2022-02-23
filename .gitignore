@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Prerequisites
 *.d
 
@@ -52,3 +53,8 @@ Mkfile.old
 dkms.conf
 
 build/
+=======
+[Bb]uild/
+*.vscode/
+*.vs/
+>>>>>>> a8d02a8 (Added ExampleApp)
