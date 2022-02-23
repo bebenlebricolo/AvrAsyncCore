@@ -46,7 +46,6 @@ typedef struct
 
 /**
  * @brief Compile-time configuration used to configure this Pwm module.
- * Note that a union is used, so soft and hard configurations occupy the same memory space.
 */
 typedef struct
 {

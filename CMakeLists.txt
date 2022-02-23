@@ -63,6 +63,6 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/Utils)
 
 # If we are not in a submodule (this project is used as a standalone project)
 # we do not want to set the CONFIG FILE
-if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/ExampleApp)
 endif()
