@@ -56,11 +56,23 @@ static pwm_error_t pwm_init_single_hard(const uint8_t index)
         case TIMEBASE_TIMER_8_BIT:
         {
             timer_8_bit_config_t config;
+            config.timing_config.waveform_mode = TIMER8BIT_WG_PWM_FAST_OCRA_MAX;
+            config.timing_config.comp_match_a = TIMER8BIT_CMOD_CLEAR_OCnX;
+            config.timing_config.comp_match_b = TIMER8BIT_CMOD_CLEAR_OCnX;
+            config.timing_config.ocra_val = 12U;
+            config.timing_config.ocrb_val = 15U;
+
             //config.force_compare.force_comp_match_a
             //timerr = timer_8_bit_stop(config->timer_index);
         }
             break;
 
+
+
+
+
+
+        // TODO report implementation to 8 bit async and 16 bit
         case TIMEBASE_TIMER_8_BIT_ASYNC:
             timerr = timer_8_bit_async_stop(config->timer_index);
             break;
