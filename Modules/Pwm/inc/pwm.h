@@ -33,24 +33,16 @@ typedef enum
     PWM_ERR_TIMER_ISSUE     /**< Timer drivers encountered some errors          */
 } pwm_error_t;
 
-
 /**
- * @brief Compile-time configuration used to configure this Pwm module.
- * Note that a union is used, so soft and hard configurations occupy the same memory space.
-*/
-typedef struct
+ * @brief Encodes the two kinds of hardware unit (slices?) of avr timers.
+ * There are usually two of them, units A and B, using the same counter and master settings, but using different OCRxx values
+ */
+typedef enum
 {
-    timebase_timer_t targeted_timer;    /**< Tells which kind of timer is targeted by this PWM instance */
-    uint8_t timer_index;                /**< Tells which timer we need to use for this PWM instance     */
-} pwm_hard_static_config_t;
-
-/**
- * @brief Compile-time configuration used to configure this Pwm module.
-*/
-typedef struct
-{
-    uint8_t io_index;  /**< IO index from the Io lookup table @see static io configuration */
-} pwm_soft_static_config_t;
+    PWM_HARD_TIMER_UNIT_UNDEFINED,  /**< Default value, no unit selected */
+    PWM_HARD_TIMER_UNIT_A,          /**< Hardware timer unit A           */
+    PWM_HARD_TIMER_UNIT_B,          /**< Hardware timer unit B           */
+} pwm_hard_timer_unit_t;
 
 /**
  * @brief Encodes the two kinds of PWM this driver handles (either software based or hardware based PWMs)
@@ -61,6 +53,53 @@ typedef enum
     PWM_TYPE_SOFTWARE, /**< Software based PWM, software wrapper will be used to toggle discrete IOs                                    */
     PWM_TYPE_HARDWARE  /**< Hardware based PWM, used to get the maximum speed, reliability and accuracy straight from hardware timers   */
 } pwm_type_t;
+
+/**
+ * @brief Compile-time configuration used to configure this Pwm module.
+ * Note that a union is used, so soft and hard configurations occupy the same memory space.
+*/
+typedef struct
+{
+    timebase_timer_t targeted_timer;    /**< Tells which kind of timer is targeted by this PWM instance */
+    uint8_t timer_index;                /**< Tells which timer we need to use for this PWM instance     */
+    pwm_hard_timer_unit_t unit;         /**< Gives the unit kind of this PWM instance                   */
+} pwm_hard_static_config_t;
+
+/**
+ * @brief Compile-time configuration used to configure this Pwm module.
+*/
+typedef struct
+{
+    uint8_t io_index;           /**< IO index from the Io lookup table @see static io configuration                                                   */
+    io_state_t initial_state;   /**< Configures starting pin state (pulling a pin to down by default is not compatible with open collector topologies */
+} pwm_soft_static_config_t;
+
+/**
+ * @brief Packs the two kinds of PWM configurations (either software or hardware configs)
+ */
+typedef struct
+{
+    pwm_type_t type;    /**< Encodes the underlying type of configuration */
+    union
+    {
+        pwm_hard_static_config_t hard;  /**< Encodes the hardware static configuration */
+        pwm_soft_static_config_t soft;  /**< Encodes the software static configuration */
+    } config;
+} pwm_static_config_t;
+
+/**
+ * @brief Encodes the various kind of TOP value used by a hardware timer counter to set the resolution (impacts frequency as well)
+ * They are essentially used by this PWM driver to configure Timer registers when configuring resolution and frequency.
+ * As TOP value varies depending on Timer waveform generation modes,
+ * we shall take this into account and update the right register accordingly
+ */
+typedef enum
+{
+    PWM_HARD_TIMER_TOP_UNDEFINED,   /**< Default value, no top value selected                                       */
+    PWM_HARD_TIMER_TOP_MAX_RES,     /**< Counter will reach max value permitted by WG mode (see datasheet for that) */
+    PWM_HARD_TIMER_TOP_OCR,         /**< Counter will go until the OCRx1 value before starting over                 */
+    PWM_HARD_TIMER_TOP_ICR,         /**< Counter will go until the ICRx1 value before starting over                 */
+} pwm_hard_timer_top_t;
 
 /**
  * @brief Hardware PWM complementary configuration structure
@@ -87,7 +126,8 @@ typedef struct
     uint8_t timer_index;    /**< Timer index as registered in pwm config structure                      */
     uint32_t frequency;     /**< Frequency of the timer counter                                         */
     uint8_t duty_cycle;     /**< Duty cycle of first PWM (unit A) between 0 and 100                     */
-    uint8_t dead_time;      /**< Dead time generation feature, ranging from [ 0 - (100 - duty_cycle) ]
+    int8_t dead_time;       /**< Dead time generation feature, ranging from [ -100, (100 - duty_cycle) ]
+                                 Note : dead time can be negative (we want some overlap).
                                  Dead time is used to generate complementary PWM that do not overlap
                                  It basically provides a time when none of the PWM is turned ON, which is
                                  useful to counteract inductive/capacitive parasitic coupling and gives
@@ -159,21 +199,28 @@ pwm_error_t pwm_stop_all(void);
  * @brief Sets the frequency of a single PWM instance
  * @note for hardware based PWMs, setting the frequency of a timer impacts its two PWM outputs at once
  * (because they are physically linked to the same underlying counter)
+ * @note 2 : this pwm driver does not handle frequencies that are too low (the internal use of @see timebase_compute_timer_parameters gives a non zero value
+ * to the accumulator variable, which is the symptom of a PWM which is too slow for the counter to handle).
+ * @param   pwm_instance_index  : pwm instance index as per given in config.c file
+ * @param   frequency           : targeted PWM frequency
+ * @param   cpu_freq            : current CPU frequency (note that if CPU frequency changes, output PWM will be off as well)
  * @return pwm_error_t:
  *      PWM_ERR_OK              : operation succeeded
  *      PWM_ERR_TIMEBASE_ISSUE  : operation did not succeed because of timebase module errors
  *      PWM_ERR_TIMER_ISSUE     : operation did not succeed because of timer drivers errors
 */
-pwm_error_t pwm_set_frequency(const pwm_type_t type, const uint8_t index, const uint32_t * frequency, const uint32_t * cpu_freq);
+pwm_error_t pwm_set_frequency(const uint8_t pwm_instance_index, const uint32_t * frequency, const uint32_t * cpu_freq);
 
 /**
  * @brief Configures a particular timer to output complementary PWM with dead time generation.
  * It uses the Phase correct and phase and frequency correct modes in order to achieve proper dead time generation
  * and symmetrical PWM output signals.
- *
- * @param config
- * @param cpu_freq
- * @return pwm_error_t
+ * @see pwm_hard_compl_config_t structure for more details.
+ * @param config        : input configuration structure
+ * @param cpu_freq      : current CPU frequency, used to calculate timer's configuration parameters
+ * @return pwm_error_t:
+ *      PWM_ERR_OK              : operation succeeded
+ *      PWM_ERR_TIMER_ISSUE     : operation did not succeed because of timer drivers errors
  */
 pwm_error_t pwm_hard_config_complementary(pwm_hard_compl_config_t const * const config, const uint32_t * cpu_freq );
 
@@ -188,8 +235,7 @@ pwm_error_t pwm_set_duty_cycle(const pwm_type_t type, const uint8_t index, const
 
 
 // Static configuration for both software based and hardware based pwms
-extern pwm_hard_static_config_t pwm_hard_config[PWM_MAX_HARD_INSTANCES];  /**< Static compile-time configuration for this driver (usually symbol is created in a config.c file) */
-extern pwm_soft_static_config_t pwm_soft_config[PWM_MAX_SOFT_INSTANCES];  /**< Static compile-time configuration for this driver (usually symbol is created in a config.c file) */
+extern pwm_static_config_t pwm_config[PWM_MAX_SOFT_INSTANCES + PWM_MAX_HARD_INSTANCES]; /** Static compile-time configuration used by this driver (needs to be implemented in config.c)*/
 
 
 #ifdef __cplusplus

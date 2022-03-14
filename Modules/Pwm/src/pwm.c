@@ -20,7 +20,7 @@ static struct
 } soft_config[PWM_MAX_SOFT_INSTANCES] = {0};
 
 
-static pwm_error_t pwm_init_single_soft(const uint8_t index);
+static inline pwm_error_t pwm_init_single_soft(const uint8_t index);
 static pwm_error_t pwm_init_single_hard(const uint8_t index);
 
 pwm_error_t pwm_init(void)
@@ -31,7 +31,8 @@ pwm_error_t pwm_init(void)
         err |= pwm_init_single_hard(i);
     }
 
-    for (uint8_t i = 0 ; i < PWM_MAX_SOFT_INSTANCES ; i++)
+    // Software PWM has very little work to do (put pins in their default state)
+    for (uint8_t i = 0 ; i < PWM_MAX_HARD_INSTANCES ; i++)
     {
         err |= pwm_init_single_soft(i);
     }
@@ -44,48 +45,75 @@ pwm_error_t pwm_init(void)
     return err;
 }
 
-static pwm_error_t pwm_init_single_hard(const uint8_t index)
-{
-    pwm_error_t ret = PWM_ERR_OK;
-    pwm_hard_static_config_t * config = &pwm_hard_config[index];
-    timer_error_t timerr = TIMER_ERROR_OK;
 
-    // Configuration varies accross the several timer drivers
+static pwm_error_t check_initialisation(const uint8_t index)
+{
+    pwm_error_t err = PWM_ERR_OK;
+    bool timer_initialised = false;
+    pwm_hard_static_config_t * config = &pwm_config[index].config.hard;
     switch(config->targeted_timer)
     {
         case TIMEBASE_TIMER_8_BIT:
-        {
-            timer_8_bit_config_t config;
-            config.timing_config.waveform_mode = TIMER8BIT_WG_PWM_FAST_OCRA_MAX;
-            config.timing_config.comp_match_a = TIMER8BIT_CMOD_CLEAR_OCnX;
-            config.timing_config.comp_match_b = TIMER8BIT_CMOD_CLEAR_OCnX;
-            config.timing_config.ocra_val = 12U;
-            config.timing_config.ocrb_val = 15U;
-
-            //config.force_compare.force_comp_match_a
-            //timerr = timer_8_bit_stop(config->timer_index);
-        }
+            err = timer_8_bit_is_initialised(config->timer_index, &timer_initialised);
             break;
 
-
-
-
-
-
-        // TODO report implementation to 8 bit async and 16 bit
         case TIMEBASE_TIMER_8_BIT_ASYNC:
-            timerr = timer_8_bit_async_stop(config->timer_index);
+            err = timer_8_bit_async_is_initialised(config->timer_index, &timer_initialised);
             break;
 
         case TIMEBASE_TIMER_16_BIT:
-            timerr = timer_16_bit_stop(config->timer_index);
+            err = timer_16_bit_is_initialised(config->timer_index, &timer_initialised);
             break;
 
         default:
-            ret = PWM_ERR_CONFIG;
+            err = PWM_ERR_CONFIG;
             break;
     }
 
+    // Reject requests if timer drivers are not initialised beforehand
+    if(false == timer_initialised)
+    {
+        err = PWM_ERR_CONFIG;
+    }
+
+    return err;
+}
+
+// This function essentially checks timer are setup correctly
+// and initialisation steps were performed prior to use the pwm driver.
+static pwm_error_t pwm_init_single_hard(const uint8_t index)
+{
+    pwm_error_t ret = PWM_ERR_OK;
+    pwm_hard_static_config_t * config = &pwm_config[index].config.hard;
+    timer_error_t timerr = TIMER_ERROR_OK;
+
+    ret = check_initialisation(index);
+    if(PWM_ERR_OK == ret)
+    {
+        switch(config->targeted_timer)
+        {
+            case TIMEBASE_TIMER_8_BIT:
+                timerr = timer_8_bit_stop(config->timer_index);
+                break;
+
+            // TODO report implementation to 8 bit async and 16 bit
+            case TIMEBASE_TIMER_8_BIT_ASYNC:
+                timerr = timer_8_bit_async_stop(config->timer_index);
+                break;
+
+            case TIMEBASE_TIMER_16_BIT:
+                timerr = timer_16_bit_stop(config->timer_index);
+                break;
+
+            default:
+                ret = PWM_ERR_CONFIG;
+                break;
+        }
+    }
+
+
+    // Timer should be already initialised, otherwise we are trying to use peripheral in an undefined state
+    // that might not behave as we expect.
     if (TIMER_ERROR_OK != timerr)
     {
         ret = PWM_ERR_CONFIG;
@@ -94,17 +122,17 @@ static pwm_error_t pwm_init_single_hard(const uint8_t index)
     return ret;
 }
 
-static pwm_error_t pwm_init_single_soft(const uint8_t index)
+static inline pwm_error_t pwm_init_single_soft(const uint8_t index)
 {
-    pwm_error_t ret = PWM_ERR_OK;
-    io_write(pwm_soft_config[index].io_index, IO_STATE_LOW);
-    return ret;
+    // Pull the targeted pin up or down dependending on the required initial state
+    io_write(pwm_config[index].config.soft.io_index, pwm_config[index].config.soft.initial_state);
+    return PWM_ERR_OK;
 }
 
-pwm_error_t pwm_set_frequency(const pwm_type_t type, const uint8_t index, const uint32_t * frequency, const uint32_t * cpu_freq)
+pwm_error_t pwm_set_frequency(const uint8_t index, const uint32_t * frequency, const uint32_t * cpu_freq)
 {
     pwm_error_t ret = PWM_ERR_OK;
-    if (PWM_TYPE_HARDWARE == type)
+    if (PWM_TYPE_HARDWARE == pwm_config[index].type)
     {
         timebase_config_t config;
         timebase_error_t timerr = TIMEBASE_ERROR_OK;
@@ -115,19 +143,28 @@ pwm_error_t pwm_set_frequency(const pwm_type_t type, const uint8_t index, const 
         config.cpu_freq = *cpu_freq;
         config.custom_target_freq = *frequency;
         config.timescale = TIMEBASE_TIMESCALE_CUSTOM;
+
+        // At this point the accumulator should be 0, otherwise it means the generated PWM is not slow enough
+        // and this driver does not support it for now
         timerr = timebase_compute_timer_parameters(&config, &prescaler_val, &ocr_value, &accumulator);
-        switch(pwm_hard_config[index].targeted_timer)
+        switch(pwm_config[index].config.hard.targeted_timer)
         {
             case TIMEBASE_TIMER_8_BIT:
-                //timerr = timer_8_bit_
+                timerr = timer_8_bit_set_prescaler(index, prescaler_val);
+                if ( PWM_HARD_TIMER_UNIT_A == pwm_config[index].config.hard.unit)
+                {
+                    timerr = timer_8_bit_set_ocra_register_value(index, ocr_value);
+                }
+                else
+                {
+                    timerr = timer_8_bit_set_ocrb_register_value(index, ocr_value);
+                }
                 break;
 
             case TIMEBASE_TIMER_8_BIT_ASYNC:
-                timerr = timer_8_bit_async_stop(pwm_hard_config[index].timer_index);
                 break;
 
             case TIMEBASE_TIMER_16_BIT:
-                timerr = timer_16_bit_stop(pwm_hard_config[index].timer_index);
                 break;
 
             default:
