@@ -129,7 +129,7 @@ static inline pwm_error_t pwm_init_single_soft(const uint8_t index)
     return PWM_ERR_OK;
 }
 
-pwm_error_t pwm_set_frequency(const uint8_t index, const uint32_t * frequency, const uint32_t * cpu_freq)
+pwm_error_t pwm_config_single(const uint8_t index, pwm_props_t const * const properties, const uint32_t * cpu_freq)
 {
     pwm_error_t ret = PWM_ERR_OK;
     if (PWM_TYPE_HARDWARE == pwm_config[index].type)
@@ -162,9 +162,27 @@ pwm_error_t pwm_set_frequency(const uint8_t index, const uint32_t * frequency, c
                 break;
 
             case TIMEBASE_TIMER_8_BIT_ASYNC:
+                timerr = timer_8_bit_set_prescaler(index, prescaler_val);
+                if ( PWM_HARD_TIMER_UNIT_A == pwm_config[index].config.hard.unit)
+                {
+                    timerr = timer_8_bit_async_set_ocra_register_value(index, ocr_value);
+                }
+                else
+                {
+                    timerr = timer_8_bit_async_set_ocrb_register_value(index, ocr_value);
+                }
                 break;
 
             case TIMEBASE_TIMER_16_BIT:
+                timerr = timer_16_bit_set_prescaler(index, prescaler_val);
+                if ( PWM_HARD_TIMER_UNIT_A == pwm_config[index].config.hard.unit)
+                {
+                    timerr = timer_16_bit_set_ocra_register_value(index, ocr_value);
+                }
+                else
+                {
+                    timerr = timer_16_bit_set_ocrb_register_value(index, ocr_value);
+                }
                 break;
 
             default:
