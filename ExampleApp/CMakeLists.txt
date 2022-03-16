@@ -9,6 +9,7 @@ add_executable(firmware
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/driver_setup.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/module_setup.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/config.c
 )
 
 # Produce a Map file

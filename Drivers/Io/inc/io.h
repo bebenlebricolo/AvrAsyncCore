@@ -1,5 +1,5 @@
-#ifndef IOMANAGER_HEADER
-#define IOMANAGER_HEADER
+#ifndef IO_DRIVER_HEADER
+#define IO_DRIVER_HEADER
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -82,7 +82,7 @@ typedef struct
     io_port_config_t    portb_cfg;  /**< Port B configuration                                           */
     io_port_config_t    portc_cfg;  /**< Port C configuration                                           */
     io_port_config_t    portd_cfg;  /**< Port D configuration                                           */
-} io_config_t;
+} io_reg_config_t;
 
 /**
  * @brief the following extern symbol is a lookup table with pins configuration.
@@ -98,7 +98,7 @@ extern io_t io_pins_lut[IO_MAX_PINS];
  * Further calls to those addresses (e.g. while reading or writing to a pin)
  * will normally by optimized by the compiler as direct calls afterwards (no pointer dereferencing then)
 */
-extern io_config_t io_config;
+extern io_reg_config_t io_reg_config;
 
 /**
  * @brief reads data on a given io, using its index as an input (referencing an
@@ -128,4 +128,4 @@ void io_init(void);
 }
 #endif
 
-#endif /* IOMANAGER_HEADER */
+#endif /* IO_DRIVER_HEADER */

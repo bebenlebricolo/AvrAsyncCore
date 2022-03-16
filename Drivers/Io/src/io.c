@@ -4,10 +4,10 @@
 
 static io_port_config_t * port_lut[IO_PORT_COUNT] =
 {
-    &io_config.porta_cfg,
-    &io_config.portb_cfg,
-    &io_config.portc_cfg,
-    &io_config.portd_cfg
+    &io_reg_config.porta_cfg,
+    &io_reg_config.portb_cfg,
+    &io_reg_config.portc_cfg,
+    &io_reg_config.portd_cfg
 };
 
 static inline void configure_single_pin(io_port_config_t * config, io_t * io)
@@ -51,7 +51,7 @@ void io_init(void)
     // Only enables pull ups if requested
     if (true == needs_pull_up)
     {
-        *io_config.mcucr_reg |= PUD_MSK;
+        *io_reg_config.mcucr_reg |= PUD_MSK;
     }
 }
 

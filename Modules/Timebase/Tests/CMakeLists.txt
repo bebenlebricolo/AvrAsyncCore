@@ -27,6 +27,7 @@ add_executable(timebase_module_tests
     Stubs/timer_8_bit_stub.c
     Stubs/timer_8_bit_async_stub.c
     Stubs/timer_16_bit_stub.c
+    Stubs/config.c
 )
 
 target_include_directories(timebase_module_tests PUBLIC

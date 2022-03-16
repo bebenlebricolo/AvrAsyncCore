@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -67,6 +67,17 @@ typedef enum
     TIMER_GENERIC_RESOLUTION_8_BIT,
     TIMER_GENERIC_RESOLUTION_16_BIT,
 } timer_generic_resolution_t;
+
+/**
+ * @brief Encodes the various timer architecture found in AVR world
+ */
+typedef enum
+{
+    TIMER_ARCH_UNDEFINED,   /**< Default value                                  */
+    TIMER_ARCH_8_BIT,       /**< Regular 8 bit timer counter architecture       */
+    TIMER_ARCH_8_BIT_ASYNC, /**< 8 bit timer counter with asynchronous features */
+    TIMER_ARCH_16_BIT       /**< Enhanced 16 bit timer counter architecture     */
+} timer_arch_t;
 
 typedef struct
 {

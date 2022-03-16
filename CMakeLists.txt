@@ -1,11 +1,15 @@
 cmake_minimum_required(VERSION 3.20)
 
-# Use AVR GCC toolchain
+# Use AVR GCC toolchain (needs to be added before the project is declared, otherwise CMake does not take it into account)
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/Toolchain/avr8-gcc-toolchain.cmake)
+endif()
+
 
 project(AvrAsyncCoreLibs C)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD 17)
 
 ############################################################################################################################################
 ############################################# Checking environment is setup correctly ######################################################
@@ -16,7 +20,6 @@ set(CMAKE_C_STANDARD 11)
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     # This variable is needed by some drivers in order to locate the config.h file
     # Provided by the application
-    set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/Toolchain/avr8-gcc-toolchain.cmake)
     set (CONFIG_FILE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ExampleApp/inc)
     set(AVR_MCU atmega328pb)
     set(AVR_MCU_SPEED 16000000)

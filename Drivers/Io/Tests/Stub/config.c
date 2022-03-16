@@ -54,7 +54,7 @@ io_t io_pins_lut[IO_MAX_PINS] =
 };
 
 
-io_config_t io_config =
+io_reg_config_t io_reg_config =
 {
     .mcucr_reg = &stubbed_registers.st_mcucr,
     .porta_cfg =

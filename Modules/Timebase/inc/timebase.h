@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -38,6 +38,8 @@ extern "C"
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "config.h"
+#include "timer_generic.h"
 
 /**
  * @brief Describes available error codes for this timebase module
@@ -50,23 +52,12 @@ typedef enum
                                                  yet, so timebase may run eratically)                           */
     TIMEBASE_ERROR_NULL_POINTER,            /**< One or more parameters are not initialised properly            */
     TIMEBASE_ERROR_INVALID_INDEX,           /**< Index is not set correctly, probably out of bounds             */
-    TIMEBASE_ERROR_UNSUPPORTED_TIMER_TYPE,  /**< Given timer type is not compatible with timebase_timer_t enum  */
+    TIMEBASE_ERROR_UNSUPPORTED_TIMER_TYPE,  /**< Given timer type is not compatible with timer_arch_t enum      */
     TIMEBASE_ERROR_UNSUPPORTED_TIMESCALE,   /**< Given timescale is not relevant to timebase module             */
 
     TIMEBASE_ERROR_TIMER_UNINITIALISED,     /**< Underlying timer is not initialised                            */
     TIMEBASE_ERROR_TIMER_ERROR,             /**< Encountered an error while using underlying timer driver       */
 } timebase_error_t;
-
-/**
- * @brief Allows to select the underlying timer driver
-*/
-typedef enum
-{
-    TIMEBASE_TIMER_UNDEFINED,       /**< Undefined timer type, default value            */
-    TIMEBASE_TIMER_8_BIT,           /**< Uses a regular 8 bit timer                     */
-    TIMEBASE_TIMER_16_BIT,          /**< Uses a regular 16 bit timer                    */
-    TIMEBASE_TIMER_8_BIT_ASYNC,     /**< Uses an advanced / async capable 8 bit timer   */
-} timebase_timer_t;
 
 /**
  * @brief Selects the reference timebase
@@ -87,15 +78,17 @@ typedef struct
 {
     struct
     {
-        timebase_timer_t type;  /**< Used to select a timer from its type                                       */
+        timer_arch_t type;  /**< Used to select a timer from its type                                       */
         uint8_t index;          /**< Used to select a particular timer from the available ones                  */
     } timer;
     uint32_t cpu_freq;              /**< Gives the CPU frequency to compute the right prescaler for the timebase    */
 
     struct
     {
-        timebase_timescale_t timescale; /**< Selects what is the resolution of the timer                            */
-        uint32_t custom_target_freq;    /**< Custom target frequency                                                */
+        timebase_timescale_t timescale; /**< Selects what is the resolution of the timer                                                */
+        uint32_t custom_target_freq;    /**< Custom target frequency (only used if timescale = TIMEBASE_TIMESCALE_CUSTOM enum value )   */
+                                        // it basically allows to set a specific target frequency which does not fall in common use cases
+                                        // such as 1000Hz, 1Hz, 1000000Hz etc.
     };
 } timebase_config_t;
 
@@ -110,18 +103,17 @@ typedef struct
  *          TIMEBASE_ERROR_UNSUPPORTED_TIMER_TYPE   :   targeted timer type does not exist
  *          TIMEBASE_ERROR_UNSUPPORTED_TIMESCALE    :   timescale is not relevant to timebase module
 */
-timebase_error_t timebase_compute_timer_parameters(timebase_config_t const * const config, uint16_t * const prescaler_val, uint16_t * const ocr_value, uint16_t * const accumulator);
+timebase_error_t timebase_compute_timer_parameters(const uint8_t id, uint16_t * const prescaler_val, uint16_t * const ocr_value, uint16_t * const accumulator);
 
 /**
  * @brief Initialises the timebase module using an id and a configuration.
  * @param[in] id     :  index of timebase module to be initialised
- * @param[in] config :  configuration to be used to initialise the targeted timebase module
  * @return
  *          TIMEBASE_ERROR_OK               :   operation succeeded
  *          TIMEBASE_ERROR_NULL_POINTER     :   given parameter is uninitialised
  *          TIMEBASE_ERROR_INVALID_INDEX    :   given module id is out of bounds
 */
-timebase_error_t timebase_init(const uint8_t id, timebase_config_t const * const config);
+timebase_error_t timebase_init(const uint8_t id);
 
 
 /**
@@ -186,6 +178,12 @@ timebase_error_t timebase_get_duration_now(const uint8_t id, uint16_t const * co
  * @param[in]  id : index of targeted timebase module
 */
 void timebase_interrupt_callback(const uint8_t id);
+
+/**
+ * @brief Encodes the static configuration used by this module
+ * Each slot of this array codes for a single timebase instance, based on a single individual hardware timer
+ */
+extern timebase_config_t timebase_static_config[TIMEBASE_MAX_MODULES];
 
 #ifdef __cplusplus
 }
