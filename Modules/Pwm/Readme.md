@@ -1,16 +1,40 @@
 # Index
 - [Index](#index)
 - [PWM driver](#pwm-driver)
+- [Interaction with hardware timer peripherals](#interaction-with-hardware-timer-peripherals)
+  - [Limitations](#limitations)
 - [Driving 8 bit timers](#driving-8-bit-timers)
   - [Dual channel PWM configuration](#dual-channel-pwm-configuration)
   - [Single channel, high speed PWM configuration](#single-channel-high-speed-pwm-configuration)
+- [Driving 16 bits timers](#driving-16-bits-timers)
+- [Basic configuration](#basic-configuration)
 
 # PWM driver
+[Back to top](#index)
+
 This PWM driver builds upon the various timer driver found in the AvrAsyncCore SDK.
 It basically provides a frontend which abstract some inner mechanisms of the timer themselves, trying to make its interface more generic and more
 portable across the Avr family.
 
+# Interaction with hardware timer peripherals
+[Back to top](#index)
+
+This PWM drivers **builds on top of the various Timer drivers and interfaces**.
+It is able to **probe the current timer hardware configuration** by reading the registers and will try to accommodate a working pwm configuration to achieve both frequency and/or duty cycle if possible. Note that this is not a strong guarantee, because of some limitations found in hardware timer implementations.
+
+Amongst other things, this driver does not mess with the Waveform Generation bits other than pure reading.
+However, it is able to modify the `COMxA/B` registers in order to select the PWM start polarity.
+
+## Limitations
+[Back to top](#index)
+
+Because of hardware limitations, some use cases such as using a 8 bit timer to generate a PWM signal might result in a PWM which might be quite off compared to the desired PWM signal. This is mainly due to the lack of functionality when it comes to dual PWM configurations for a single hardware timer.
+
+Software is also limited in speed and refresh rate : it needs the main application to call the `process()` function at a high enough rate to cope with the software PWM requirements. In that regard, it is better to keep the software PWM frequency low enough, like at least ***10 times lower than the main `while loop` refresh rate.***
+
 # Driving 8 bit timers
+[Back to top](#index)
+
 Regular 8 bit timers and 8 bit asynchronous timers share a common peripheral interface, where one can choose how configure them as PWM units.
 As per the other kinds of timers, they have two units, A and B, which are sharing a common counter register (usually TCNTx).
 
@@ -45,6 +69,8 @@ This implies that regarding PWM modes, we have essentially two available solutio
 * Single channel, high speed PWM with full frequency and duty cycle control
 
 ## Dual channel PWM configuration
+[Back to top](#index)
+
 This configuration is achieved when either `TIMER8BIT_WG_PWM_FAST_FULL_RANGE` or `TIMER8BIT_WG_PWM_PHASE_CORRECT_FULL_RANGE` is used to configure a given timer.
 As a result, the top value of the counter is always set to the maximum value of the 8 bit counter, which is `0xFF`.
 Then, the only way to change the frequency of the output PWMs will be to change the prescaler used by the timer itself, or by varying the CPU frequency as the output frequency is governed by the following equation :
@@ -63,6 +89,8 @@ For high speed PWM however, this is really limiting and the fact that we cannot 
 ![](docs/Timer8bit_dual_channel.png)
 
 ## Single channel, high speed PWM configuration
+[Back to top](#index)
+
 This configuration sacrifices the unit A of the timer, as it its OCRA value is used by the timer to determine the `TOP` value.
 It is achieved through the use of `TIMER8BIT_WG_PWM_FAST_OCRA_MAX` or `TIMER8BIT_WG_PWM_PHASE_CORRECT_OCRA_MAX` and correctly handling `COMAxx` and `COMBxx` registers.
 Hence, the B unit will benefit from the `OCRA` value in order to pinpoint the closest frequency we want to work with, and the `OCRB` value will then be used to set the `duty_cycle` of the B unit.
@@ -72,3 +100,19 @@ At best, the A PWM channel can output a 50% duty_cycle PWM with half the frequen
 * Using `TIMER8BIT_CMOD_SET_OCnX` will pull the output pin down to GND permanently (pin is cleared when timer reaches the BOTTOM value = 0)
 
 ![](docs/Timer8bit_single_channel.png)
+
+# Driving 16 bits timers
+[Back to top](#index)
+
+16 bit timers are a bit more full-featured and allow the generation of accurate, complementary PWM signals out of a single timer.
+Still, both channels share the same base prescaler, counter and `TOP` value, hence the same output frequency.
+However, we can use the `ICR` register in order to provide an external value to the counter which will serve as the new `TOP` value, as well as reducing the counter's resolution using the appropriate WG mode.
+
+# Basic configuration
+This driver uses a static configuration variable which needs to be exposed somewhere in the application code.
+This is usually done by implementing the external symbol `pwm_config` in a `config.c` file, compiled by the firmware.
+Both Hardware and Software PWMs configurations are mixed in this array, so one might need to retain the indices of each PWM instance in order to access them later on when using the PWM driver.
+
+```C
+
+```

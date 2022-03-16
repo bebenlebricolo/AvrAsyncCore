@@ -54,6 +54,12 @@ typedef enum
     PWM_TYPE_HARDWARE  /**< Hardware based PWM, used to get the maximum speed, reliability and accuracy straight from hardware timers   */
 } pwm_type_t;
 
+typedef enum
+{
+    PWM_POLARITY_NORMAL,    /**< PWM signal starts at the HIGH state (output pin is set to VCC when counter reaches TOP) */
+    PWM_POLARITY_INVERTED,  /**< PWM signal starts at the LOW state (output pin is set to GND when counter reaches TOP)  */
+} pwm_polarity_t;
+
 // ################################################################################################
 // ############################ Compile time static configuration #################################
 // ################################################################################################
@@ -75,7 +81,7 @@ typedef struct
 typedef struct
 {
     uint8_t io_index;           /**< IO index from the Io lookup table @see static io configuration                                                   */
-    io_state_t initial_state;   /**< Configures starting pin state (pulling a pin to down by default is not compatible with open collector topologies */
+    uint8_t timebase_index;     /**< Timebase index used to look at the watch                                                                         */
 } pwm_soft_static_config_t;
 
 /**
@@ -116,6 +122,7 @@ typedef struct
 {
     uint32_t frequency;  /**< Desired frequency of the timer counter     */
     uint8_t duty_cycle;  /**< Desired duty cycle, ranging from 0 to 100  */
+    pwm_polarity_t pol;  /**< Desired start polarity on the targeted pin */
 } pwm_props_t;
 
 /**
@@ -223,6 +230,11 @@ pwm_error_t pwm_stop_all(void);
  *    -> Output frequency is limit to a few frequencies as per this relation : F_CPU/(prescaler*TOP) ; where TOP = 0xFF
  *       which for a CPU frequency of 16 MHz gives : | prescaler       |   1   |   8  |  64  | 256 | 1024 |
  *                                                   | Frequency (Hz)  | 62500 | 7812 | 976  | 244 |  61  |
+ *  - Single pwm channel on 8 bit timers need to sacrifice the unit A in order to get full control over B unit's frequency AND duty cycle alltogether.
+ *    -> This is achieve through the use of WG FAST PWM OCRA MAX mode and WG PHASE CORRECT OCRA MAX modes
+ * This driver checks the actual values of TCCRxx, looking for WG modes and COMxA/B modes.
+ * Those values will then be taken into account in order to configure the timer accordingly, but this function will not configure WG and COM modes for
+ * you, this is the responsibility of the Timer initialisation steps.
  * @param   pwm_instance_index  : pwm instance index as per given in config.c file
  * @param   frequency           : targeted PWM frequency
  * @param   cpu_freq            : current CPU frequency (note that if CPU frequency changes, output PWM will be off as well)
