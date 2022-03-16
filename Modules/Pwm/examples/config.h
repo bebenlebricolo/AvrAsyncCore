@@ -12,7 +12,7 @@ extern "C" {
 
 // Pseudo timer configuration as per registered in Timer 8 bit driver
 #define MOTOR_1_TIMER_IDX 0U
-#define MOTOR_2_TIMER_IDX 1U
+#define MOTOR_2_TIMER_IDX MOTOR_1_TIMER_IDX  // both motor output pins are driven by the same timer
 
 // Software PWM implementation
 // Pseudo pin mapping -> interacts with the IO driver

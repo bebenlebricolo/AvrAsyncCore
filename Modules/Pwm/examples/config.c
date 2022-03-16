@@ -16,7 +16,7 @@ timebase_config_t timebase_static_config[TIMEBASE_MAX_INSTANCES] =
     {
         .timer =
         {
-            .type = TIMEBASE_TIMER_8_BIT,
+            .type = TIMER_ARCH_8_BIT,
             .index = TIMEBASE_TARGETED_TIMER_IDX,
         },
         .cpu_freq = F_CPU,
@@ -49,7 +49,7 @@ pwm_static_config_t pwm_config[PWM_MAX_HARD_INSTANCES + PWM_MAX_SOFT_INSTANCES] 
     {.type = PWM_TYPE_HARDWARE,
      .config.hard =
      {
-        .targeted_timer = TIMEBASE_TIMER_8_BIT,
+        .targeted_timer = TIMER_ARCH_16_BIT,
         .unit = PWM_HARD_TIMER_UNIT_A,
         .timer_index = MOTOR_1_TIMER_IDX
      }
@@ -58,8 +58,8 @@ pwm_static_config_t pwm_config[PWM_MAX_HARD_INSTANCES + PWM_MAX_SOFT_INSTANCES] 
     {.type = PWM_TYPE_HARDWARE,
      .config.hard =
      {
-        .targeted_timer = TIMEBASE_TIMER_8_BIT,
-        .unit = PWM_HARD_TIMER_UNIT_A,
+        .targeted_timer = TIMER_ARCH_16_BIT,
+        .unit = PWM_HARD_TIMER_UNIT_B,
         .timer_index = MOTOR_2_TIMER_IDX
      }
     }
