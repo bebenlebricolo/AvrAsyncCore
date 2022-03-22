@@ -91,13 +91,6 @@ static inline timebase_error_t setup_8_bit_timer(const uint8_t timebase_id, uint
                                             &timebase_internal_config[timebase_id].accumulator.programmed);
 
     timer_error_t ret = timer_8_bit_stop(timebase_internal_config[timebase_id].timer_id);
-    timer_8_bit_handle_t handle = {0};
-    ret = timer_8_bit_get_handle(timebase_internal_config[timebase_id].timer_id, &handle);
-
-    if (TIMER_ERROR_OK != ret)
-    {
-        return TIMEBASE_ERROR_TIMER_ERROR;
-    }
 
     timer_8_bit_config_t config = {0};
     ret = timer_8_bit_get_default_config(&config);
@@ -107,9 +100,8 @@ static inline timebase_error_t setup_8_bit_timer(const uint8_t timebase_id, uint
     }
 
     // Use old handle
-    config.handle = handle;
-    config.timing_config.comp_match_a = TIMER8BIT_CMOD_CLEAR_OCnX;
-    config.timing_config.comp_match_b = TIMER8BIT_CMOD_NORMAL;
+    config.timing_config.comp_mode_a = TIMER8BIT_CMOD_CLEAR_OCnX;
+    config.timing_config.comp_mode_b = TIMER8BIT_CMOD_NORMAL;
     config.timing_config.ocra_val = ocra;
     config.timing_config.prescaler = prescaler;
     config.interrupt_config.it_comp_match_a = true;

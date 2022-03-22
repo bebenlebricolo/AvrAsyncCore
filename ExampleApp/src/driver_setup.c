@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -71,15 +71,6 @@ driver_setup_error_t driver_init_timer_0(void)
         }
     }
 
-    /* Configuring handle */
-    config.handle.OCRA = &OCR0A;
-    config.handle.OCRB = &OCR0B;
-    config.handle.TCCRA = &TCCR0A;
-    config.handle.TCCRB = &TCCR0B;
-    config.handle.TCNT = &TCNT0;
-    config.handle.TIFR = &TIFR0;
-    config.handle.TIMSK = &TIMSK0;
-
 	/* Enable OC0A and OC0B as outputs */
     OC0A_DDR_REG |= (1 << OC0A_PIN_NUMBER);
     OC0B_DDR_REG |= (1 << OC0B_PIN_NUMBER);
@@ -95,8 +86,8 @@ driver_setup_error_t driver_init_timer_0(void)
     config.timing_config.prescaler = TIMER8BIT_CLK_PRESCALER_8;
     config.timing_config.waveform_mode = TIMER8BIT_WG_PWM_FAST_FULL_RANGE;
     /* Invert OC0x behavior to provide a correct PWM for a push-pull driver pair */
-    config.timing_config.comp_match_a = TIMER8BIT_CMOD_CLEAR_OCnX;
-    config.timing_config.comp_match_b = TIMER8BIT_CMOD_SET_OCnX;
+    config.timing_config.comp_mode_a = TIMER8BIT_CMOD_CLEAR_OCnX;
+    config.timing_config.comp_mode_b = TIMER8BIT_CMOD_SET_OCnX;
     /* Duty cycle : 39 % */
     config.timing_config.ocra_val = 99;
     config.timing_config.ocrb_val = 99;

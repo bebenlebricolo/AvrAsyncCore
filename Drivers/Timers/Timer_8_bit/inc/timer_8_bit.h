@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -72,7 +72,6 @@ typedef struct
     timer_8_bit_timing_config_t        timing_config;    /**< Handles basic timing configuration for 8 bit timers                                */
     timer_8_bit_interrupt_config_t     interrupt_config; /**< Handles interrupt configuraitons for 8 bit timers                                  */
     timer_8_bit_force_compare_config_t force_compare;    /**< Handles force compare flags on output A and B, generic configuration among timers  */
-    timer_8_bit_handle_t               handle;           /**< Stores pointer locations to peripheral registers                                   */
 } timer_8_bit_config_t;
 
 
@@ -91,30 +90,6 @@ typedef struct
  *      TIMER_ERROR_NULL_POINTER   :   given config parameter points to NULL
 */
 timer_error_t timer_8_bit_get_default_config(timer_8_bit_config_t * config);
-
-/**
- * @brief sets the handle of timer_8_bit driver
- * @param[in]   id     : targeted timer id (used to fetch internal configuration based on ids)
- * @param[in]   handle : handle to be copied into internal configuration
- * @return
- *      TIMER_ERROR_OK             :   operation succeeded
- *      TIMER_ERROR_UNKNOWN_TIMER  :   given id is out of range
- *      TIMER_ERROR_NULL_POINTER   :   given force_comp_config parameter points to NULL
-*/
-timer_error_t timer_8_bit_set_handle(uint8_t id, timer_8_bit_handle_t * const handle);
-
-/**
- * @brief fetches the handle of timer_8_bit driver
- * @param[in]   id     : targeted timer id (used to fetch internal configuration based on ids)
- * @param[out]  handle : output handle extracted from internal driver memory
- * @return
- *      TIMER_ERROR_OK             :   operation succeeded
- *      TIMER_ERROR_UNKNOWN_TIMER  :   given id is out of range
- *      TIMER_ERROR_NULL_POINTER   :   given force_comp_config parameter points to NULL
-*/
-timer_error_t timer_8_bit_get_handle(uint8_t id, timer_8_bit_handle_t * const handle);
-
-
 
 /* ################################ Force compare flags configuration ############################### */
 /**
@@ -419,6 +394,11 @@ timer_error_t timer_8_bit_stop(uint8_t id);
  * which can be used to generate any given frequency
 */
 extern const timer_generic_prescaler_pair_t timer_8_bit_prescaler_table[TIMER_8_BIT_MAX_PRESCALER_COUNT];
+
+/**
+ * @brief this handle has to be declared somewhere and initialised appropriately
+ */
+extern timer_8_bit_handle_t timer_8_bit_static_handle;
 
 void timer_8_bit_compute_matching_parameters(const uint32_t * const cpu_freq,
                                              const uint32_t * const target_freq,

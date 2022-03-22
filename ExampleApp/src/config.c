@@ -3,6 +3,7 @@
 #include "timer_8_bit.h"
 #include "timer_8_bit_async.h"
 #include "timer_16_bit.h"
+#include "avr/io.h"
 
 #ifndef F_CPU
 #pragma message("F_CPU macro was not set, defaulting to 8MHz")
@@ -15,10 +16,21 @@ timebase_config_t timebase_static_config[TIMEBASE_MAX_MODULES] =
     {
         .timer =
         {
-            .type = TIMEBASE_TIMER_8_BIT_ASYNC,
+            .type = TIMER_ARCH_8_BIT_ASYNC,
             .index = 0,
         },
         .cpu_freq = F_CPU,
         .timescale = TIMEBASE_TIMESCALE_MILLISECONDS
     }
+};
+
+timer_8_bit_handle_t timer_8_bit_static_handle =
+{
+    .OCRA = &OCR0A,
+    .OCRB = &OCR0B,
+    .TCCRA = &TCCR0A,
+    .TCCRB = &TCCR0B,
+    .TCNT = &TCNT0,
+    .TIFR = &TIFR0,
+    .TIMSK = &TIMSK0
 };
