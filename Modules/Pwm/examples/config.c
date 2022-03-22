@@ -49,7 +49,7 @@ pwm_static_config_t pwm_config[PWM_MAX_HARD_INSTANCES + PWM_MAX_SOFT_INSTANCES] 
     {.type = PWM_TYPE_HARDWARE,
      .config.hard =
      {
-        .targeted_timer = TIMER_ARCH_16_BIT,
+        .arch = TIMER_ARCH_16_BIT,
         .unit = PWM_HARD_TIMER_UNIT_A,
         .timer_index = MOTOR_1_TIMER_IDX
      }
@@ -58,7 +58,7 @@ pwm_static_config_t pwm_config[PWM_MAX_HARD_INSTANCES + PWM_MAX_SOFT_INSTANCES] 
     {.type = PWM_TYPE_HARDWARE,
      .config.hard =
      {
-        .targeted_timer = TIMER_ARCH_16_BIT,
+        .arch = TIMER_ARCH_16_BIT,
         .unit = PWM_HARD_TIMER_UNIT_B,
         .timer_index = MOTOR_2_TIMER_IDX
      }

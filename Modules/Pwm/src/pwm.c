@@ -5,6 +5,17 @@
 #include "timer_16_bit.h"
 #include "timer_8_bit_async.h"
 
+
+#ifndef PWM_MAX_SOFT_INSTANCES
+#define PWM_MAX_SOFT_INSTANCES 1U
+#warning "PWM_MAX_SOFT_INSTANCES macro not defined in config.h, fallsback to 1U by default"
+#endif
+
+#ifndef PWM_MAX_HARD_INSTANCES
+#define PWM_MAX_HARD_INSTANCES 1U
+#warning "PWM_MAX_HARD_INSTANCES macro not defined in config.h, fallsback to 1U by default"
+#endif
+
 /**
  * @brief Static storage for pwm configuration
  * This is done this way to enhance the dynamic nature of PWMs, so that we can

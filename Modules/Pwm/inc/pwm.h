@@ -10,7 +10,7 @@ extern "C"
 
 #include "io.h"
 #include "config.h"
-#include "timebase.h"
+#include "timer_generic.h"
 
 #ifndef PWM_MAX_SOFT_INSTANCES
 #define PWM_MAX_SOFT_INSTANCES 1U
@@ -70,9 +70,9 @@ typedef enum
 */
 typedef struct
 {
-    timebase_timer_t targeted_timer;    /**< Tells which kind of timer is targeted by this PWM instance */
-    uint8_t timer_index;                /**< Tells which timer we need to use for this PWM instance     */
-    pwm_hard_timer_unit_t unit;         /**< Gives the unit kind of this PWM instance                   */
+    timer_arch_t arch;          /**< Tells which kind of timer is targeted by this PWM instance */
+    uint8_t timer_index;              /**< Tells which timer we need to use for this PWM instance     */
+    pwm_hard_timer_unit_t unit; /**< Gives the unit kind of this PWM instance                   */
 } pwm_hard_static_config_t;
 
 /**

@@ -11,6 +11,12 @@ project(AvrAsyncCoreLibs C)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 17)
 
+
+# This option, disabled by default, allows CMake to configure subproject and build examples that are located within
+# Driver's or Module's "examples" folder.
+# The aim behind that is to validate that the examples are well declared and build fine altogether with regular codebase
+option(BUILD_EXAMPLES "Will configure example projects as well" OFF )
+
 ############################################################################################################################################
 ############################################# Checking environment is setup correctly ######################################################
 ############################################################################################################################################
