@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -33,6 +33,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <stdint.h>
 #include "timer_16_bit_reg.h"
+#include "config.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -77,7 +78,6 @@ typedef struct
     timer_16_bit_interrupt_config_t                    interrupt_config; /**< Handles interrupt configuraitons for 16 bit timers                                 */
     timer_16_bit_force_compare_config_t                force_compare;    /**< Handles force compare flags on output A and B, generic configuration among timers  */
     timer_16_bit_input_capture_noise_canceler_config_t input_capture;    /**< Handles input capture noise canceler configuration for 16-bit timers               */
-    timer_16_bit_handle_t                              handle;           /**< Stores pointer locations to peripheral registers                                   */
 } timer_16_bit_config_t;
 
 /* ##############################################################################################################
@@ -95,30 +95,6 @@ typedef struct
  *      TIMER_ERROR_NULL_POINTER   :   given config parameter points to NULL
 */
 timer_error_t timer_16_bit_get_default_config(timer_16_bit_config_t * config);
-
-/**
- * @brief sets the handle of timer_16_bit driver
- * @param[in]   id     : targeted timer id (used to fetch internal configuration based on ids)
- * @param[in]   handle : handle to be copied into internal configuration
- * @return
- *      TIMER_ERROR_OK             :   operation succeeded
- *      TIMER_ERROR_UNKNOWN_TIMER  :   given id is out of range
- *      TIMER_ERROR_NULL_POINTER   :   given force_comp_config parameter points to NULL
-*/
-timer_error_t timer_16_bit_set_handle(uint8_t id, timer_16_bit_handle_t * const handle);
-
-/**
- * @brief gets the handle of timer_16_bit driver
- * @param[in]   id     : targeted timer id (used to fetch internal configuration based on ids)
- * @param[in]   handle : handle to be copied from internal configuration
- * @return
- *      TIMER_ERROR_OK             :   operation succeeded
- *      TIMER_ERROR_UNKNOWN_TIMER  :   given id is out of range
- *      TIMER_ERROR_NULL_POINTER   :   given force_comp_config parameter points to NULL
-*/
-timer_error_t timer_16_bit_get_handle(uint8_t id, timer_16_bit_handle_t * const handle);
-
-
 
 /* ################################ Force compare flags configuration ############################### */
 /**
@@ -183,6 +159,11 @@ timer_error_t timer_16_bit_get_interrupt_config(uint8_t id, timer_16_bit_interru
  *      TIMER_ERROR_NULL_POINTER   :   given it_config parameter points to NULL
 */
 timer_error_t timer_16_bit_get_interrupt_flags(uint8_t id, timer_16_bit_interrupt_config_t * it_flags);
+
+/**
+ * @brief Resets internal configuration of timer 16 bit driver
+ */
+void timer_16_bit_clear_init_states(void);
 #endif
 
 /**
@@ -473,23 +454,45 @@ timer_error_t timer_16_bit_start(uint8_t id);
 */
 timer_error_t timer_16_bit_stop(uint8_t id);
 
-#define TIMER_16_BIT_MAX_PRESCALER_COUNT (5U)
 
-
+/**
+ * @brief Computes timing parameters such as prescaler, ocr value and accumulator in order to satisfy the requested target frequency,
+ * using CPU main clock frequency as the time constraint.
+ *
+ * @param[in] cpu_freq     : current CPU main clock frequency
+ * @param[in] target_freq  : desired output frequency of the timer (assuming ocr is the top value)
+ * @param[out] prescaler   : output prescaler parameter
+ * @param[out] ocr         : output ocr value
+ * @param[out] accumulator : output accumulator value ; used by the timebase module for instance to count events and extend timer's counter capabilities
+ */
 void timer_16_bit_compute_matching_parameters(const uint32_t * const cpu_freq,
                                               const uint32_t * const target_freq,
                                               timer_16_bit_prescaler_selection_t * const prescaler,
-                                              uint16_t * const ocra,
+                                              uint16_t * const ocr,
                                               uint16_t * const accumulator);
 
-/**
- * @brief Timer 16 bit prescaler table, ascending order. Used to compute the closest prescaler
- * which can be used to generate any given frequency
-*/
-extern const timer_generic_prescaler_pair_t timer_16_bit_prescaler_table[TIMER_16_BIT_MAX_PRESCALER_COUNT];
+#define TIMER_16_BIT_MAX_PRESCALER_COUNT (5U)
 
+/**
+ * @brief Converts a single prescaler enum to its value-based counterpart.
+ * Behaves as a lookup table
+ * @param prescaler  : input prescaler
+ * @return uint16_t  : returns the translated value (from 1 to 1024)
+ */
 uint16_t timer_16_bit_prescaler_to_value(const timer_16_bit_prescaler_selection_t prescaler);
+
+/**
+ * @brief Translates back a plain prescaler value to its enum counterpart.
+ * If no direct equivalent is found, returns the TIMER8BIT_CLK_NO_CLOCK enum value
+ * @param input_prescaler  : input prescaler parameter
+ * @return enum value
+ */
 timer_16_bit_prescaler_selection_t timer_16_bit_prescaler_from_value(uint16_t const * const input_prescaler);
+
+/**
+ * @brief this handle has to be declared somewhere and initialised appropriately
+ */
+extern timer_16_bit_handle_t timer_16_bit_static_handle[TIMER_16_BIT_COUNT];
 
 #ifdef __cplusplus
 }

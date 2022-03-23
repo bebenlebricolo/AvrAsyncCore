@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -141,20 +141,6 @@ timer_error_t timer_16_bit_get_default_config(timer_16_bit_config_t * config)
     config->input_capture.edge_select = TIMER16BIT_INPUT_CAPTURE_EDGE_FALLING_EDGE;
     config->input_capture.use_noise_canceler = false;
 
-    /* Architecture and device dependent, must be set at configuration time */
-    config->handle.OCRA_H = NULL;
-    config->handle.OCRA_L = NULL;
-    config->handle.OCRB_H = NULL;
-    config->handle.OCRB_L = NULL;
-    config->handle.TCCRA = NULL;
-    config->handle.TCCRB = NULL;
-    config->handle.TCCRC = NULL;
-    config->handle.TCNT_H = NULL;
-    config->handle.TCNT_L = NULL;
-    config->handle.ICR_H = NULL;
-    config->handle.ICR_L = NULL;
-    config->handle.TIFR = NULL;
-    config->handle.TIMSK = NULL;
     return ret;
 }
 

@@ -26,6 +26,8 @@ target_include_directories(timer_16_bit_driver_tests PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Stub
     ${CMAKE_CURRENT_SOURCE_DIR}/../inc
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Timer_generic/inc
+    ${CMAKE_CURRENT_SOURCE_DIR}
+
 )
 
 target_include_directories(timer_16_bit_driver_tests SYSTEM PUBLIC
