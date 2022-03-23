@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -45,8 +45,7 @@ protected:
     {
         timer_8_bit_async_registers_stub_erase();
         (void) timer_8_bit_async_get_default_config(&config);
-        timer_8_bit_async_registers_stub_init_handle(&config.handle);
-        (void) timer_8_bit_async_set_handle(DT_ID, &config.handle);
+        timer_8_bit_async_clear_init_states();
     }
     void TearDown() override
     {
@@ -59,92 +58,69 @@ TEST(timer_8_bit_async_driver_tests, guard_null_handle)
     timer_error_t ret = timer_8_bit_async_get_default_config(&config);
     ASSERT_EQ(TIMER_ERROR_OK, ret);
 
-    /* We should have a null handle at the moment */
-    ASSERT_TRUE(NULL == config.handle.OCRA   );
-    ASSERT_TRUE(NULL == config.handle.OCRB   );
-    ASSERT_TRUE(NULL == config.handle.TCCRA  );
-    ASSERT_TRUE(NULL == config.handle.TCCRB  );
-    ASSERT_TRUE(NULL == config.handle.TCNT   );
-    ASSERT_TRUE(NULL == config.handle.TIFR   );
-    ASSERT_TRUE(NULL == config.handle.TIMSK  );
-    ASSERT_TRUE(NULL == config.handle.ASSR_REG   );
-
     ret = timer_8_bit_async_init(DT_ID, &config);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
     ret = timer_8_bit_async_reconfigure(DT_ID, &config);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
 
     /* Test compare match mode A get/set api */
     ret = timer_8_bit_async_set_compare_match_A(DT_ID, config.timing_config.comp_match_a);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
     ret = timer_8_bit_async_get_compare_match_A(DT_ID, &config.timing_config.comp_match_a);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
 
     /* Test compare match mode B get/set api */
     ret = timer_8_bit_async_set_compare_match_B(DT_ID, config.timing_config.comp_match_b);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
     ret = timer_8_bit_async_get_compare_match_B(DT_ID, &config.timing_config.comp_match_b);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
-
-    /* Test handle setting function */
-    ret = timer_8_bit_async_set_handle(DT_ID, &config.handle);
     ASSERT_EQ(TIMER_ERROR_OK, ret);
 
     /* Test interrupt config get/set api */
     ret = timer_8_bit_async_set_interrupt_config(DT_ID, &config.interrupt_config);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
     ret = timer_8_bit_async_get_interrupt_config(DT_ID, &config.interrupt_config);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
 
     /* Test OCRA get/set api */
     ret = timer_8_bit_async_set_ocra_register_value(DT_ID, config.timing_config.ocra_val);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
     ret = timer_8_bit_async_get_ocra_register_value(DT_ID, &config.timing_config.ocra_val);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
 
     /* Test OCRB get/set api */
     ret = timer_8_bit_async_set_ocrb_register_value(DT_ID, config.timing_config.ocrb_val);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
     ret = timer_8_bit_async_get_ocrb_register_value(DT_ID, &config.timing_config.ocrb_val);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
 
     /* Test counter get/set api */
     ret = timer_8_bit_async_set_counter_value(DT_ID, config.timing_config.counter);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
     ret = timer_8_bit_async_get_counter_value(DT_ID, &config.timing_config.counter);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
 
     /* Test force compare flags get/set api */
     ret = timer_8_bit_async_set_force_compare_config(DT_ID, &config.force_compare);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
     ret = timer_8_bit_async_get_force_compare_config(DT_ID, &config.force_compare);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
 
     /* Test prescaler get/set api */
     ret = timer_8_bit_async_set_prescaler(DT_ID, config.timing_config.prescaler);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
     ret = timer_8_bit_async_get_prescaler(DT_ID, &config.timing_config.prescaler);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
 
     /* Test waveforme generation get/set api */
     ret = timer_8_bit_async_set_waveform_generation(DT_ID, config.timing_config.waveform_mode);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
     ret = timer_8_bit_async_get_waveform_generation(DT_ID, &config.timing_config.waveform_mode);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
 }
 
 TEST_F(Timer8BitAsyncFixture,  guard_reg_busy)
 {
     timer_error_t ret = TIMER_ERROR_OK;
-    /* We should have a null handle at the moment */
-    ASSERT_TRUE(NULL != config.handle.OCRA   );
-    ASSERT_TRUE(NULL != config.handle.OCRB   );
-    ASSERT_TRUE(NULL != config.handle.TCCRA  );
-    ASSERT_TRUE(NULL != config.handle.TCCRB  );
-    ASSERT_TRUE(NULL != config.handle.TCNT   );
-    ASSERT_TRUE(NULL != config.handle.TIFR   );
-    ASSERT_TRUE(NULL != config.handle.TIMSK  );
-    ASSERT_TRUE(NULL != config.handle.ASSR_REG   );
 
     /* Test compare match mode A get/set api */
     timer_8_bit_async_registers_stub.ASSR_REG |= TCRAUB_MSK;
@@ -230,13 +206,6 @@ TEST(timer_8_bit_async_driver_tests, guard_null_pointer)
     ret = timer_8_bit_async_get_compare_match_B(DT_ID, nullptr_compare_output_mode);
     ASSERT_EQ(TIMER_ERROR_NULL_POINTER, ret);
 
-    timer_8_bit_async_handle_t * nullptr_handle = NULL;
-    /* Test handle setting function */
-    ret = timer_8_bit_async_set_handle(DT_ID, nullptr_handle);
-    ASSERT_EQ(TIMER_ERROR_NULL_POINTER, ret);
-    ret = timer_8_bit_async_get_handle(DT_ID, nullptr_handle);
-    ASSERT_EQ(TIMER_ERROR_NULL_POINTER, ret);
-
     /* Test interrupt config get/set api */
     timer_8_bit_async_interrupt_config_t * nullptr_interrupt_config = NULL;
     ret = timer_8_bit_async_set_interrupt_config(DT_ID, nullptr_interrupt_config);
@@ -291,12 +260,6 @@ TEST(timer_8_bit_async_driver_tests, guard_wrong_id)
     ret = timer_8_bit_async_get_compare_match_A(targeted_id,  &config.timing_config.comp_match_a);
     ASSERT_EQ(TIMER_ERROR_UNKNOWN_TIMER, ret);
     ret = timer_8_bit_async_get_compare_match_B(targeted_id, &config.timing_config.comp_match_b);
-    ASSERT_EQ(TIMER_ERROR_UNKNOWN_TIMER, ret);
-
-    /* Test handle setting function */
-    ret = timer_8_bit_async_set_handle(targeted_id, &config.handle);
-    ASSERT_EQ(TIMER_ERROR_UNKNOWN_TIMER, ret);
-    ret = timer_8_bit_async_get_handle(targeted_id, &config.handle);
     ASSERT_EQ(TIMER_ERROR_UNKNOWN_TIMER, ret);
 
     /* Test interrupt config get/set api */

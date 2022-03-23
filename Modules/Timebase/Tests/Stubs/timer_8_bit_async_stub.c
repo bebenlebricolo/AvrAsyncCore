@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -141,15 +141,6 @@ timer_error_t timer_8_bit_async_get_default_config(timer_8_bit_async_config_t * 
     config->force_compare.force_comp_match_a = false;
     config->force_compare.force_comp_match_b = false;
 
-    /* Architecture and device dependent, must be set at configuration time */
-    config->handle.OCRA = NULL;
-    config->handle.OCRB = NULL;
-    config->handle.TCCRA = NULL;
-    config->handle.TCCRB = NULL;
-    config->handle.TCNT = NULL;
-    config->handle.TIFR = NULL;
-    config->handle.TIMSK = NULL;
-    config->handle.ASSR_REG = NULL;
     return ret;
 }
 
