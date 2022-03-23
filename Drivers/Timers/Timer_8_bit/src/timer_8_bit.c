@@ -53,8 +53,6 @@ static struct
     bool is_initialised;
 } internal_config[TIMER_8_BIT_COUNT] = {0};
 
-#define TIMER_8_BIT_MAX_PRESCALER_COUNT 5U
-
 const timer_generic_prescaler_pair_t timer_8_bit_prescaler_table[TIMER_8_BIT_MAX_PRESCALER_COUNT] =
 {
     {.value = 1U,       .type = (uint8_t) TIMER8BIT_CLK_PRESCALER_1     },
@@ -368,7 +366,14 @@ timer_error_t timer_8_bit_get_interrupt_flags(uint8_t id, timer_8_bit_interrupt_
     }
 
     return ret;
+}
 
+void timer_8_bit_clear_init_states(void)
+{
+    for (uint8_t i = 0 ; i < TIMER_8_BIT_COUNT ; i++)
+    {
+        internal_config[i].is_initialised = false;
+    }
 }
 #endif
 

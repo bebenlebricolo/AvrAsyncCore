@@ -34,6 +34,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <stdint.h>
 #include "timer_generic.h"
 #include "timer_8_bit_reg.h"
+#include "config.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -154,6 +155,11 @@ timer_error_t timer_8_bit_get_interrupt_config(uint8_t id, timer_8_bit_interrupt
  *      TIMER_ERROR_NULL_POINTER   :   given it_config parameter points to NULL
 */
 timer_error_t timer_8_bit_get_interrupt_flags(uint8_t id, timer_8_bit_interrupt_config_t * it_flags);
+
+/**
+ * @brief Resets internal configuration of timer 8 bit driver
+ */
+void timer_8_bit_clear_init_states(void);
 #endif
 
 
@@ -404,6 +410,8 @@ void timer_8_bit_compute_matching_parameters(const uint32_t * const cpu_freq,
                                              timer_8_bit_prescaler_selection_t * const prescaler,
                                              uint8_t * const ocr,
                                              uint16_t * const accumulator);
+
+#define TIMER_8_BIT_MAX_PRESCALER_COUNT 5U
 
 /**
  * @brief Converts a single prescaler enum to its value-based counterpart.

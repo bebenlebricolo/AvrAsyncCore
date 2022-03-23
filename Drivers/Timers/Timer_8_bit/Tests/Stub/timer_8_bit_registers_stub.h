@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -55,7 +55,6 @@ typedef struct
 extern timer_8_bit_registers_stub_t timer_8_bit_registers_stub;
 
 void timer_8_bit_registers_stub_erase(void);
-void timer_8_bit_registers_stub_init_handle(timer_8_bit_handle_t * handle);
 
 #ifdef __cplusplus
 }
