@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -100,11 +100,11 @@ void timer_generic_compute_parameters(timer_generic_parameters_t * const paramet
 
     if (computed_ocra != 0)
     {
-        parameters->output.ocra = (computed_ocra - 1U);
+        parameters->output.ocr = (computed_ocra - 1U);
     }
     else
     {
         //TODO : We might be a bit off. In this case, normally we would have to raise the prescaler one step further and recompute ocra value.
-        parameters->output.ocra = computed_ocra;
+        parameters->output.ocr = computed_ocra;
     }
 }

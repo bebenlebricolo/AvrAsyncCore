@@ -102,7 +102,7 @@ typedef struct
     struct
     {
         uint16_t prescaler;
-        uint16_t ocra;
+        uint16_t ocr;
         uint32_t accumulator;
     } output;
 } timer_generic_parameters_t;

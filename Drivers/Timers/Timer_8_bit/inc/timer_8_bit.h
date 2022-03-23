@@ -387,27 +387,44 @@ timer_error_t timer_8_bit_start(uint8_t id);
 */
 timer_error_t timer_8_bit_stop(uint8_t id);
 
-#define TIMER_8_BIT_MAX_PRESCALER_COUNT (5U)
+
 
 /**
- * @brief Timer 8 bit prescaler table, ascending order. Used to compute the closest prescaler
- * which can be used to generate any given frequency
-*/
-extern const timer_generic_prescaler_pair_t timer_8_bit_prescaler_table[TIMER_8_BIT_MAX_PRESCALER_COUNT];
+ * @brief Computes timing parameters such as prescaler, ocr value and accumulator in order to satisfy the requested target frequency,
+ * using CPU main clock frequency as the time constraint.
+ *
+ * @param[in] cpu_freq     : current CPU main clock frequency
+ * @param[in] target_freq  : desired output frequency of the timer (assuming ocr is the top value)
+ * @param[out] prescaler   : output prescaler parameter
+ * @param[out] ocr         : output ocr value
+ * @param[out] accumulator : output accumulator value ; used by the timebase module for instance to count events and extend timer's counter capabilities
+ */
+void timer_8_bit_compute_matching_parameters(const uint32_t * const cpu_freq,
+                                             const uint32_t * const target_freq,
+                                             timer_8_bit_prescaler_selection_t * const prescaler,
+                                             uint8_t * const ocr,
+                                             uint16_t * const accumulator);
+
+/**
+ * @brief Converts a single prescaler enum to its value-based counterpart.
+ * Behaves as a lookup table
+ * @param prescaler  : input prescaler
+ * @return uint16_t  : returns the translated value (from 1 to 1024)
+ */
+uint16_t timer_8_bit_prescaler_to_value(const timer_8_bit_prescaler_selection_t prescaler);
+
+/**
+ * @brief Translates back a plain prescaler value to its enum counterpart.
+ * If no direct equivalent is found, returns the TIMER8BIT_CLK_NO_CLOCK enum value
+ * @param input_prescaler  : input prescaler parameter
+ * @return enum value
+ */
+timer_8_bit_prescaler_selection_t timer_8_bit_prescaler_from_value(uint16_t const * const input_prescaler);
 
 /**
  * @brief this handle has to be declared somewhere and initialised appropriately
  */
-extern timer_8_bit_handle_t timer_8_bit_static_handle;
-
-void timer_8_bit_compute_matching_parameters(const uint32_t * const cpu_freq,
-                                             const uint32_t * const target_freq,
-                                             timer_8_bit_prescaler_selection_t * const prescaler,
-                                             uint8_t * const ocra,
-                                             uint16_t * const accumulator);
-
-uint16_t timer_8_bit_prescaler_to_value(const timer_8_bit_prescaler_selection_t prescaler);
-timer_8_bit_prescaler_selection_t timer_8_bit_prescaler_from_value(uint16_t const * const input_prescaler);
+extern timer_8_bit_handle_t timer_8_bit_static_handle[TIMER_8_BIT_COUNT];
 
 #ifdef __cplusplus
 }
