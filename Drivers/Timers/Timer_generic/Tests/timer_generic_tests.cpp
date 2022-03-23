@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -57,28 +57,28 @@ TEST(timer_generic_driver_tests, test_compute_parameters)
 
     timer_generic_compute_parameters(&parameters);
     ASSERT_EQ(parameters.output.prescaler, 1U);
-    ASSERT_EQ(parameters.output.ocra, 15U);
+    ASSERT_EQ(parameters.output.ocr, 15U);
     ASSERT_EQ(parameters.output.accumulator, 0U);
 
     parameters.input.cpu_frequency = 16'000'000U;
     parameters.input.target_frequency = 1'000U;
     timer_generic_compute_parameters(&parameters);
     ASSERT_EQ(parameters.output.prescaler, 64U);
-    ASSERT_EQ(parameters.output.ocra, 249U);
+    ASSERT_EQ(parameters.output.ocr, 249U);
     ASSERT_EQ(parameters.output.accumulator, 0U);
 
     parameters.input.cpu_frequency = 16'000'000U;
     parameters.input.target_frequency = 1U;
     timer_generic_compute_parameters(&parameters);
     ASSERT_EQ(parameters.output.prescaler, 1024U);
-    ASSERT_EQ(parameters.output.ocra, 124U);
+    ASSERT_EQ(parameters.output.ocr, 124U);
     ASSERT_EQ(parameters.output.accumulator, 124U);
 
     parameters.input.cpu_frequency = 24'000'000U;
     parameters.input.target_frequency = 1U;
     timer_generic_compute_parameters(&parameters);
     ASSERT_EQ(parameters.output.prescaler, 1024U);
-    ASSERT_EQ(parameters.output.ocra, 22U);
+    ASSERT_EQ(parameters.output.ocr, 22U);
     ASSERT_EQ(parameters.output.accumulator, 1018U);
 
 }

@@ -25,6 +25,7 @@ target_include_directories(timer_generic_driver_tests PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Timer_8_bit/inc
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Timer_8_bit_async/inc
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Timer_16_bit/inc
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 target_include_directories(timer_generic_driver_tests SYSTEM PUBLIC
