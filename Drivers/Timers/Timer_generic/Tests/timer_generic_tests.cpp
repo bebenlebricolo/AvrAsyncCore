@@ -83,6 +83,47 @@ TEST(timer_generic_driver_tests, test_compute_parameters)
 
 }
 
+TEST(timer_generic_driver_tests, test_compute_prescaler)
+{
+    const uint8_t max_size = 7U;
+    const uint8_t array_size = 5U;
+    timer_generic_prescaler_pair_t array[max_size] =
+    {
+        {1U,    1U},
+        {8U,    2U},
+        {64U,   3U},
+        {256U,  4U},
+        {1024U, 5U},
+        {0,0},
+        {0,0}
+    };
+    timer_generic_parameters_t parameters;
+    parameters.input.cpu_frequency = 16'000'000U;
+    parameters.input.target_frequency = 1'000'000U;
+    parameters.input.resolution = TIMER_GENERIC_RESOLUTION_8_BIT;
+    parameters.input.prescaler_lookup_array.array = array;
+    parameters.input.prescaler_lookup_array.size = array_size;
+
+    timer_generic_find_closest_prescaler(&parameters);
+    ASSERT_EQ(parameters.output.prescaler, 1U);
+
+    parameters.input.cpu_frequency = 16'000'000U;
+    parameters.input.target_frequency = 1'000U;
+    timer_generic_find_closest_prescaler(&parameters);
+    ASSERT_EQ(parameters.output.prescaler, 64U);
+
+    parameters.input.cpu_frequency = 16'000'000U;
+    parameters.input.target_frequency = 1U;
+    timer_generic_find_closest_prescaler(&parameters);
+    ASSERT_EQ(parameters.output.prescaler, 1024U);
+
+    parameters.input.cpu_frequency = 24'000'000U;
+    parameters.input.target_frequency = 1U;
+    timer_generic_find_closest_prescaler(&parameters);
+    ASSERT_EQ(parameters.output.prescaler, 1024U);
+
+}
+
 int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);

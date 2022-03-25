@@ -114,20 +114,6 @@ driver_setup_error_t driver_init_timer_1(void)
         }
     }
 
-    /* Configuring handle */
-    config.handle.OCRA_H = &OCR1AH;
-    config.handle.OCRA_L = &OCR1AL;
-    config.handle.OCRB_H = &OCR1BH;
-    config.handle.OCRB_L = &OCR1BL;
-    config.handle.TCCRA = &TCCR1A;
-    config.handle.TCCRB = &TCCR1B;
-    config.handle.TCCRC = &TCCR1C;
-    config.handle.TCNT_H = &TCNT1H;
-    config.handle.TCNT_L = &TCNT1L;
-    config.handle.TIFR = &TIFR1;
-    config.handle.TIMSK = &TIMSK1;
-    config.handle.ICR_H = &ICR1H;
-    config.handle.ICR_L = &ICR1L;
 
 	/* Enable OC0A and OC0B as outputs */
     /* PD6 = OC0A on arduino nano */
@@ -174,16 +160,6 @@ driver_setup_error_t driver_init_timer_2(void)
             return DRIVER_SETUP_ERROR_INIT_FAILED;
         }
     }
-
-    /* Configuring handle */
-    config.handle.OCRA = &OCR2A;
-    config.handle.OCRB = &OCR2B;
-    config.handle.TCCRA = &TCCR2A;
-    config.handle.TCCRB = &TCCR2B;
-    config.handle.TCNT = &TCNT2;
-    config.handle.TIFR = &TIFR2;
-    config.handle.TIMSK = &TIMSK2;
-    config.handle.ASSR_REG = &ASSR;
 
 	/* Enable OC0A and OC0B as outputs */
     OC2A_DDR_REG |= (1 << OC2A_PIN_NUMBER);

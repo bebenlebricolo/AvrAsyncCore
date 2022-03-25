@@ -106,7 +106,18 @@ typedef struct
     } output;
 } timer_generic_parameters_t;
 
+/**
+ * @brief Finds the timer parameters in order to get the closest frequency out of the a given Timer
+ * @param parameters : takes the .input field and computes closest values for prescaler, ocr and accumulator values
+ */
 void timer_generic_compute_parameters(timer_generic_parameters_t * const parameters);
+
+/**
+ * @brief finds the closest prescaler value that allows the selected timer to achieve the requested frequency.
+ * Note that its implementation is independent of hardware timer limitations and only results from calculations on frequencies.
+ * @param parameters : input parameters, also serves as output parameter block
+ */
+void timer_generic_find_closest_prescaler(timer_generic_parameters_t * const parameters);
 
 #ifdef __cplusplus
 }

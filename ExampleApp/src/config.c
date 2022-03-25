@@ -24,13 +24,15 @@ timebase_config_t timebase_static_config[TIMEBASE_MAX_MODULES] =
     }
 };
 
-timer_8_bit_handle_t timer_8_bit_static_handle =
+timer_8_bit_handle_t timer_8_bit_static_handle[TIMER_8_BIT_COUNT] =
 {
-    .OCRA = &OCR0A,
-    .OCRB = &OCR0B,
-    .TCCRA = &TCCR0A,
-    .TCCRB = &TCCR0B,
-    .TCNT = &TCNT0,
-    .TIFR = &TIFR0,
-    .TIMSK = &TIMSK0
+    {
+        .OCRA = &OCR0A,
+        .OCRB = &OCR0B,
+        .TCCRA = &TCCR0A,
+        .TCCRB = &TCCR0B,
+        .TCNT = &TCNT0,
+        .TIFR = &TIFR0,
+        .TIMSK = &TIMSK0
+    }
 };
