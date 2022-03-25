@@ -38,6 +38,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #define TIMEBASE_MAX_MODULES 3U
 #define I2C_DEVICES_COUNT 1U
+#define PWM_MAX_SOFT_INSTANCES 2U
+#define PWM_MAX_HARD_INSTANCES 2U
 
 // Only implement master tx driver
 #define I2C_IMPLEM_MASTER_TX

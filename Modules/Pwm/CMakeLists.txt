@@ -22,6 +22,7 @@ add_library(pwm_driver STATIC
 target_include_directories(pwm_driver PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     ${AVR_INCLUDES}
+    ${CONFIG_FILE_DIR}
 )
 
 target_link_libraries(pwm_driver

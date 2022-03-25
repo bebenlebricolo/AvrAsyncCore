@@ -71,6 +71,8 @@ static inline timebase_error_t setup_8_bit_timer(const uint8_t timebase_id, uint
 {
     bool initialised = false;
     timer_error_t err = timer_8_bit_is_initialised(timebase_internal_config[timebase_id].timer_id, &initialised);
+    uint8_t timer_id = timebase_internal_config[timebase_id].timer_id;
+
     if (TIMER_ERROR_OK != err)
     {
         return TIMEBASE_ERROR_TIMER_ERROR;
@@ -90,7 +92,7 @@ static inline timebase_error_t setup_8_bit_timer(const uint8_t timebase_id, uint
                                             &ocra,
                                             &timebase_internal_config[timebase_id].accumulator.programmed);
 
-    timer_error_t ret = timer_8_bit_stop(timebase_internal_config[timebase_id].timer_id);
+    timer_error_t ret = timer_8_bit_stop(timer_id);
 
     timer_8_bit_config_t config = {0};
     ret = timer_8_bit_get_default_config(&config);
@@ -119,6 +121,7 @@ static inline timebase_error_t setup_8_bit_async_timer(const uint8_t timebase_id
 {
     bool initialised = false;
     timer_error_t err = timer_8_bit_async_is_initialised(timebase_internal_config[timebase_id].timer_id, &initialised);
+    uint8_t timer_id = timebase_internal_config[timebase_id].timer_id;
     if (TIMER_ERROR_OK != err)
     {
         return TIMEBASE_ERROR_TIMER_ERROR;
@@ -138,15 +141,7 @@ static inline timebase_error_t setup_8_bit_async_timer(const uint8_t timebase_id
                                                   &ocra,
                                                   &timebase_internal_config[timebase_id].accumulator.programmed);
 
-    timer_error_t ret = timer_8_bit_async_stop(timebase_internal_config[timebase_id].timer_id);
-    timer_8_bit_async_handle_t handle = {0};
-    ret = timer_8_bit_async_get_handle(timebase_internal_config[timebase_id].timer_id, &handle);
-
-    if (TIMER_ERROR_OK != ret)
-    {
-        return TIMEBASE_ERROR_TIMER_ERROR;
-    }
-
+    timer_error_t ret = timer_8_bit_async_stop(timer_id);
     timer_8_bit_async_config_t config = {0};
     ret = timer_8_bit_async_get_default_config(&config);
     if (TIMER_ERROR_OK != ret)
@@ -155,7 +150,6 @@ static inline timebase_error_t setup_8_bit_async_timer(const uint8_t timebase_id
     }
 
     // Use old handle
-    config.handle = handle;
     config.timing_config.comp_match_a = TIMER8BIT_ASYNC_CMOD_CLEAR_OCnX;
     config.timing_config.comp_match_b = TIMER8BIT_ASYNC_CMOD_NORMAL;
     config.timing_config.ocra_val = ocra;
@@ -195,8 +189,6 @@ static inline timebase_error_t setup_16_bit_timer(const uint8_t timebase_id, uin
                                             &timebase_internal_config[timebase_id].accumulator.programmed);
 
     timer_error_t ret = timer_16_bit_stop(timebase_internal_config[timebase_id].timer_id);
-    timer_16_bit_handle_t handle = {0};
-    ret = timer_16_bit_get_handle(timebase_internal_config[timebase_id].timer_id, &handle);
 
     if (TIMER_ERROR_OK != ret)
     {
@@ -211,7 +203,6 @@ static inline timebase_error_t setup_16_bit_timer(const uint8_t timebase_id, uin
     }
 
     // Use old handle
-    config.handle = handle;
     config.timing_config.comp_match_a = TIMER16BIT_CMOD_CLEAR_OCnX;
     config.timing_config.comp_match_b = TIMER16BIT_CMOD_NORMAL;
     config.timing_config.ocra_val = ocra;
