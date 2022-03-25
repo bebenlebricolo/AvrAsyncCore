@@ -242,6 +242,7 @@ pwm_error_t pwm_stop_all(void);
  *      PWM_ERR_OK              : operation succeeded
  *      PWM_ERR_TIMEBASE_ISSUE  : operation did not succeed because of timebase module errors
  *      PWM_ERR_TIMER_ISSUE     : operation did not succeed because of timer drivers errors
+ *      PWM_ERROR_CONFIG        : PWM configuration error, driver or dependencies were not configured correctly
 */
 pwm_error_t pwm_config_single(const uint8_t index, pwm_props_t const * const properties, const uint32_t * cpu_freq);
 
