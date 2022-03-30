@@ -424,6 +424,18 @@ void timer_8_bit_async_compute_matching_parameters(const uint32_t * const clock_
                                                    uint8_t * const ocra,
                                                    uint16_t * const accumulator);
 
+/**
+ * @brief Computes timing parameters such as prescaler, ocr value and accumulator in order to satisfy the requested target frequency,
+ * using CPU main clock frequency as the time constraint.
+ *
+ * @param[in] clock_freq     : current CPU main clock frequency
+ * @param[in] target_freq  : desired output frequency of the timer (assuming ocr is the top value)
+ * @param[out] prescaler   : output prescaler parameter
+ */
+void timer_8_bit_async_compute_closest_prescaler(const uint32_t * const clock_freq,
+                                                 const uint32_t * const target_freq,
+                                                 timer_8_bit_async_prescaler_selection_t * const prescaler);
+
 #define TIMER_8_BIT_ASYNC_MAX_PRESCALER_COUNT (7U)
 
 /**

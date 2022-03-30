@@ -471,6 +471,18 @@ void timer_16_bit_compute_matching_parameters(const uint32_t * const clock_freq,
                                               uint16_t * const ocr,
                                               uint16_t * const accumulator);
 
+/**
+ * @brief Computes timing parameters such as prescaler, ocr value and accumulator in order to satisfy the requested target frequency,
+ * using CPU main clock frequency as the time constraint.
+ *
+ * @param[in] clock_freq     : current CPU main clock frequency
+ * @param[in] target_freq  : desired output frequency of the timer (assuming ocr is the top value)
+ * @param[out] prescaler   : output prescaler parameter
+ */
+void timer_16_bit_compute_closest_prescaler(const uint32_t * const clock_freq,
+                                            const uint32_t * const target_freq,
+                                            timer_16_bit_prescaler_selection_t * const prescaler);
+
 #define TIMER_16_BIT_MAX_PRESCALER_COUNT (5U)
 
 /**

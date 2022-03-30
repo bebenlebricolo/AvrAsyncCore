@@ -105,6 +105,25 @@ void timer_8_bit_async_compute_matching_parameters(const uint32_t * const clock_
     *accumulator = parameters.output.accumulator;
 }
 
+void timer_8_bit_async_compute_closest_prescaler(const uint32_t * const clock_freq,
+                                                 const uint32_t * const target_freq,
+                                                 timer_8_bit_async_prescaler_selection_t * const prescaler)
+{
+    timer_generic_parameters_t parameters =
+    {
+        .input =
+        {
+            .clock_freq = *clock_freq,
+            .target_frequency = *target_freq,
+            .resolution = TIMER_GENERIC_RESOLUTION_8_BIT,
+            .prescaler_lookup_array.array = timer_8_bit_async_prescaler_table,
+            .prescaler_lookup_array.size = TIMER_8_BIT_ASYNC_MAX_PRESCALER_COUNT,
+        },
+    };
+    timer_generic_find_closest_prescaler(&parameters);
+    *prescaler = parameters.output.prescaler;
+}
+
 static inline timer_error_t check_id(uint8_t id)
 {
     if (id >= TIMER_8_BIT_ASYNC_COUNT)
