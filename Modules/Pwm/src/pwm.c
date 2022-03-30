@@ -16,6 +16,12 @@
 #warning "PWM_MAX_HARD_INSTANCES macro not defined in config.h, fallsback to 1U by default"
 #endif
 
+
+#define COUNTER_MAX_VALUE_8_BIT     255U
+#define COUNTER_MAX_VALUE_9_BIT     511U
+#define COUNTER_MAX_VALUE_10_BIT    1023U
+#define COUNTER_MAX_VALUE_16_BIT    65535U
+
 /**
  * @brief Static storage for pwm configuration
  * This is done this way to enhance the dynamic nature of PWMs, so that we can
@@ -263,7 +269,7 @@ static pwm_error_t configure_timer_8_bit_single(const uint8_t index, pwm_props_t
                 }
 
                 // OCRA value represents the duty_cycle value now
-                ocr_value = (properties->duty_cycle * (TIMER_GENERIC_8_BIT_LIMIT_VALUE - 1)) / 100U;
+                ocr_value = (properties->duty_cycle * COUNTER_MAX_VALUE_8_BIT) / 100U;
                 timerr = timer_8_bit_set_ocra_register_value(timer_config->timer_index, ocr_value);
                 if(TIMER_ERROR_OK != timerr)
                 {
@@ -329,7 +335,7 @@ static pwm_error_t configure_timer_8_bit_single(const uint8_t index, pwm_props_t
             case TIMER8BIT_WG_PWM_PHASE_CORRECT_FULL_RANGE:
             {
                 // OCRA value represents the duty_cycle value now
-                ocr_value = (properties->duty_cycle * (TIMER_GENERIC_8_BIT_LIMIT_VALUE - 1)) / 100U;
+                ocr_value = (properties->duty_cycle * COUNTER_MAX_VALUE_8_BIT) / 100U;
                 timerr = timer_8_bit_set_ocra_register_value(timer_config->timer_index, ocr_value);
                 if(TIMER_ERROR_OK != timerr)
                 {
@@ -383,18 +389,381 @@ static pwm_error_t configure_timer_8_bit_single(const uint8_t index, pwm_props_t
     return ret;
 }
 
-static pwm_error_t configure_timer_8_bit_async_single(const uint8_t index, pwm_props_t const * const properties, const uint32_t * cpu_freq)
+// Timer 8 bit async share the same infrastructure as the 8 bit one
+static pwm_error_t configure_timer_8_bit_async_single(const uint8_t index, pwm_props_t const * const properties, const uint32_t * clock_freq)
 {
-    (void) index;
-    (void) properties;
-    (void) cpu_freq;
-    return PWM_ERR_CONFIG;
+    timer_error_t timerr = TIMER_ERROR_OK;
+    pwm_error_t ret = PWM_ERR_OK;
+
+    uint8_t ocr_value = 0;
+    uint16_t prescaler_value = 1U;
+
+    timer_8_bit_async_prescaler_selection_t prescaler = TIMER8BIT_ASYNC_CLK_NO_CLOCK;
+    timer_8_bit_async_waveform_generation_t waveform = TIMER8BIT_ASYNC_WG_NORMAL;
+    pwm_hard_static_config_t * timer_config = &pwm_config[index].config.hard;
+
+    // Compute closest prescaler first
+    timer_8_bit_async_compute_closest_prescaler(clock_freq, &properties->frequency, &prescaler);
+    prescaler_value = timer_8_bit_async_prescaler_to_value(prescaler);
+    timerr = timer_8_bit_async_set_prescaler(index, prescaler);
+    if (TIMER_ERROR_OK != timerr)
+    {
+        return PWM_ERR_TIMER_ISSUE;
+    }
+
+    // We need to probe the waveform generation modes from Timer driver because it drives the way we configure a PWM afterwards
+    // (Because timer8 bit has some limitations when it comes to having PWMs with full frequency and duty cycle control, a lot depends on the Waveform Generation)
+    timerr = timer_8_bit_async_get_waveform_generation(timer_config->timer_index, &waveform);
+    if (TIMER_ERROR_OK != timerr)
+    {
+        return PWM_ERR_TIMER_ISSUE;
+    }
+
+    // Handles the hardware PWM unit A or B
+    if ( PWM_HARD_TIMER_UNIT_A == timer_config->unit)
+    {
+        // The waveform selection mode tells us about the kind of desired PWM
+        switch(waveform)
+        {
+            // TOP value is set to 255
+            case TIMER8BIT_ASYNC_WG_PWM_FAST_FULL_RANGE:
+            case TIMER8BIT_ASYNC_WG_PWM_PHASE_CORRECT_FULL_RANGE:
+            {
+                // Select the polarity
+                if(properties->pol == PWM_POLARITY_NORMAL)
+                {
+                    // When OCRA is hit, output pin should be cleared (means that output pin is SET high when counter reaches TOP)
+                    timerr = timer_8_bit_async_set_compare_match_A(timer_config->timer_index, TIMER8BIT_ASYNC_CMOD_CLEAR_OCnX);
+                }
+                else
+                {
+                    // When OCRA is hit, output pin should be set (means that output pin is CLEARED low when counter reaches TOP)
+                    timerr = timer_8_bit_async_set_compare_match_A(timer_config->timer_index, TIMER8BIT_ASYNC_CMOD_SET_OCnX);
+                }
+                if(TIMER_ERROR_OK != timerr)
+                {
+                    return PWM_ERR_TIMER_ISSUE;
+                }
+
+                // OCRA value represents the duty_cycle value now
+                ocr_value = (properties->duty_cycle * COUNTER_MAX_VALUE_8_BIT) / 100U;
+                timerr = timer_8_bit_async_set_ocra_register_value(timer_config->timer_index, ocr_value);
+                if(TIMER_ERROR_OK != timerr)
+                {
+                    return PWM_ERR_TIMER_ISSUE;
+                }
+                break;
+            }
+            // TOP value is controlled by OCRA value
+            case TIMER8BIT_ASYNC_WG_PWM_FAST_OCRA_MAX:
+            case TIMER8BIT_ASYNC_WG_PWM_PHASE_CORRECT_OCRA_MAX:
+                // Here, the only configuration that will make the pin work as a real PWM output (wihtout glitches) is the TIMER8BIT_CMOD_TOGGLE_OCnX
+                // So it will effectively divide the output frequency by 2 in both Fast PWM mode and Phase correct PWM mode (which already divides output frequency by 2)
+                timerr = timer_8_bit_async_set_compare_match_A(timer_config->timer_index, TIMER8BIT_ASYNC_CMOD_TOGGLE_OCnX);
+                if (TIMER_ERROR_OK != timerr)
+                {
+                    return PWM_ERR_TIMER_ISSUE;
+                }
+
+                ocr_value = (*clock_freq / (prescaler_value * properties->frequency)) - 1;
+                // Trying to compensate for the 50% duty cycle and toggling mode which halves the output frequency
+                if(ocr_value > 2 )
+                {
+                    ocr_value /= 2;
+                }
+                // TODO : consider using the prescaler as well, for instance if ocra is too small, we might be able to use a higher prescaler
+                // E.g : ocra can be divided by 8 (say 248 / 8 => 31) and prescaler = 1 then we can use a prescaler of 8 and have ocra at 31, and vice-versa if needed.
+                timerr = timer_8_bit_async_set_ocra_register_value(index, ocr_value);
+                if (TIMER_ERROR_OK != timerr)
+                {
+                    return PWM_ERR_TIMER_ISSUE;
+                }
+                break;
+
+            // Misconfigured Timer, could not proceed further
+            case TIMER8BIT_ASYNC_WG_CTC:
+            case TIMER8BIT_ASYNC_WG_NORMAL:
+            default:
+                return PWM_ERR_CONFIG;
+        }
+
+    }
+    // UNIT B has a different treatment than UNIT A on timer 8 bit and variants
+    else /* UNIT B */
+    {
+        // Select the polarity
+        if(properties->pol == PWM_POLARITY_NORMAL)
+        {
+            // When OCRB is hit, output pin should be cleared (means that output pin is SET high when counter reaches TOP)
+            timerr = timer_8_bit_async_set_compare_match_B(timer_config->timer_index, TIMER8BIT_ASYNC_CMOD_CLEAR_OCnX);
+        }
+        else
+        {
+            // When OCRB is hit, output pin should be set (means that output pin is CLEARED low when counter reaches TOP)
+            timerr = timer_8_bit_async_set_compare_match_B(timer_config->timer_index, TIMER8BIT_ASYNC_CMOD_SET_OCnX);
+        }
+
+        // The waveform selection mode tells us about the kind of desired PWM
+        switch(waveform)
+        {
+            // TOP value is set to 255
+            // This configuration is valid for fixed frequency PWM with precise control over duty_cycle
+            case TIMER8BIT_ASYNC_WG_PWM_FAST_FULL_RANGE:
+            case TIMER8BIT_ASYNC_WG_PWM_PHASE_CORRECT_FULL_RANGE:
+            {
+                // OCRA value represents the duty_cycle value now
+                ocr_value = (properties->duty_cycle * COUNTER_MAX_VALUE_8_BIT) / 100U;
+                timerr = timer_8_bit_async_set_ocra_register_value(timer_config->timer_index, ocr_value);
+                if(TIMER_ERROR_OK != timerr)
+                {
+                    return PWM_ERR_TIMER_ISSUE;
+                }
+                break;
+
+                // Set timer ocrb value, to control duty_cycle
+                timerr = timer_8_bit_async_set_ocrb_register_value(index, ocr_value);
+                if (TIMER_ERROR_OK != timerr)
+                {
+                    return PWM_ERR_TIMER_ISSUE;
+                }
+
+                break;
+            }
+
+            // TOP value is controlled by OCRA value
+            case TIMER8BIT_ASYNC_WG_PWM_FAST_OCRA_MAX:
+            case TIMER8BIT_ASYNC_WG_PWM_PHASE_CORRECT_OCRA_MAX:
+            {
+
+                // Compute exact frequency value for OCRA
+                // We don't try to modify OCRA value to compensate for 50% output frequency, because in this case
+                // the output pin is not toggled
+                ocr_value = (*clock_freq / (prescaler_value * properties->frequency)) - 1;
+                // Set timer ocra value, to control output frequency
+                timerr = timer_8_bit_async_set_ocra_register_value(index, ocr_value);
+                if (TIMER_ERROR_OK != timerr)
+                {
+                    return PWM_ERR_TIMER_ISSUE;
+                }
+
+                // Compute exact duty cycle value for OCRB (reuse the ocr_value variable)
+                ocr_value = (properties->duty_cycle * ocr_value) / 100U;
+                // Set timer ocrb value, to control duty_cycle
+                timerr = timer_8_bit_async_set_ocrb_register_value(index, ocr_value);
+                if (TIMER_ERROR_OK != timerr)
+                {
+                    return PWM_ERR_TIMER_ISSUE;
+                }
+                break;
+            }
+            // Misconfigured Timer, could not proceed further
+            case TIMER8BIT_ASYNC_WG_CTC:
+            case TIMER8BIT_ASYNC_WG_NORMAL:
+            default:
+                return PWM_ERR_CONFIG;
+        }
+    }
+    return ret;
 }
 
-static pwm_error_t configure_timer_16_bit_single(const uint8_t index, pwm_props_t const * const properties, const uint32_t * cpu_freq)
+static pwm_error_t configure_timer_16_bit_single(const uint8_t index, pwm_props_t const * const properties, const uint32_t * clock_freq)
 {
-    (void) index;
-    (void) properties;
-    (void) cpu_freq;
-    return PWM_ERR_CONFIG;
+    timer_error_t timerr = TIMER_ERROR_OK;
+    pwm_error_t ret = PWM_ERR_OK;
+
+    uint16_t ocr_value = 0;
+    uint16_t prescaler_value = 1U;
+
+    timer_16_bit_prescaler_selection_t prescaler = TIMER16BIT_CLK_NO_CLOCK;
+    timer_16_bit_waveform_generation_t waveform = TIMER16BIT_WG_NORMAL;
+    pwm_hard_static_config_t * timer_config = &pwm_config[index].config.hard;
+
+
+    // Compute closest prescaler first
+    timer_16_bit_compute_closest_prescaler(clock_freq, &properties->frequency, &prescaler);
+    prescaler_value = timer_16_bit_prescaler_to_value(prescaler);
+    timerr = timer_16_bit_set_prescaler(index, prescaler);
+    if (TIMER_ERROR_OK != timerr)
+    {
+        return PWM_ERR_TIMER_ISSUE;
+    }
+
+    // We need to probe the waveform generation modes from Timer driver because it drives the way we configure a PWM afterwards
+    // (Because timer8 bit has some limitations when it comes to having PWMs with full frequency and duty cycle control, a lot depends on the Waveform Generation)
+    timerr = timer_16_bit_get_waveform_generation(timer_config->timer_index, &waveform);
+    if (TIMER_ERROR_OK != timerr)
+    {
+        return PWM_ERR_TIMER_ISSUE;
+    }
+
+    // Select the polarity globally, checking special cases later on
+    if( PWM_HARD_TIMER_UNIT_A == timer_config->unit)
+    {
+        if(properties->pol == PWM_POLARITY_NORMAL)
+        {
+            // When OCRA is hit, output pin should be cleared (means that output pin is SET high when counter reaches TOP)
+            timerr = timer_16_bit_set_compare_match_A(timer_config->timer_index, TIMER16BIT_CMOD_CLEAR_OCnX);
+        }
+        else
+        {
+            // When OCRA is hit, output pin should be set (means that output pin is CLEARED low when counter reaches TOP)
+            timerr = timer_16_bit_set_compare_match_A(timer_config->timer_index, TIMER16BIT_CMOD_SET_OCnX);
+        }
+    }
+    else
+    {
+        if(properties->pol == PWM_POLARITY_NORMAL)
+        {
+            // When OCRA is hit, output pin should be cleared (means that output pin is SET high when counter reaches TOP)
+            timerr = timer_16_bit_set_compare_match_B(timer_config->timer_index, TIMER16BIT_CMOD_CLEAR_OCnX);
+        }
+        else
+        {
+            // When OCRA is hit, output pin should be set (means that output pin is CLEARED low when counter reaches TOP)
+            timerr = timer_16_bit_set_compare_match_B(timer_config->timer_index, TIMER16BIT_CMOD_SET_OCnX);
+        }
+    }
+
+    if(TIMER_ERROR_OK != timerr)
+    {
+        return PWM_ERR_TIMER_ISSUE;
+    }
+
+    // The waveform selection mode tells us about the kind of desired PWM
+    switch(waveform)
+    {
+        // TOP value is set to 255
+        case TIMER16BIT_WG_PWM_FAST_8_bit_FULL_RANGE:
+        case TIMER16BIT_WG_PWM_PHASE_CORRECT_8_bit_FULL_RANGE:
+            ocr_value = (properties->duty_cycle * COUNTER_MAX_VALUE_8_BIT) / 100U;
+            if ( PWM_HARD_TIMER_UNIT_A == timer_config->unit)
+            {
+                // OCRA value represents the duty_cycle value now
+                timerr = timer_16_bit_set_ocra_register_value(timer_config->timer_index, ocr_value);
+            }
+            else
+            {
+                // OCRB value represents the duty_cycle value now
+                timerr = timer_16_bit_set_ocrb_register_value(timer_config->timer_index, ocr_value);
+            }
+            if(TIMER_ERROR_OK != timerr)
+            {
+                return PWM_ERR_TIMER_ISSUE;
+            }
+
+            break;
+
+        // TOP value is set to 511
+        case TIMER16BIT_WG_PWM_FAST_9_bit_FULL_RANGE:
+        case TIMER16BIT_WG_PWM_PHASE_CORRECT_9_bit_FULL_RANGE:
+            ocr_value = (properties->duty_cycle * COUNTER_MAX_VALUE_9_BIT) / 100U;
+            if ( PWM_HARD_TIMER_UNIT_A == timer_config->unit)
+            {
+                // OCRA value represents the duty_cycle value now
+                timerr = timer_16_bit_set_ocra_register_value(timer_config->timer_index, ocr_value);
+            }
+            else
+            {
+                // OCRB value represents the duty_cycle value now
+                timerr = timer_16_bit_set_ocrb_register_value(timer_config->timer_index, ocr_value);
+            }
+            if(TIMER_ERROR_OK != timerr)
+            {
+                return PWM_ERR_TIMER_ISSUE;
+            }
+            break;
+
+        // Top value is set to 1023
+        case TIMER16BIT_WG_PWM_FAST_10_bit_FULL_RANGE:
+        case TIMER16BIT_WG_PWM_PHASE_CORRECT_10_bit_FULL_RANGE:
+            ocr_value = (properties->duty_cycle * COUNTER_MAX_VALUE_10_BIT) / 100U;
+            if ( PWM_HARD_TIMER_UNIT_A == timer_config->unit)
+            {
+                // OCRA value represents the duty_cycle value now
+                timerr = timer_16_bit_set_ocra_register_value(timer_config->timer_index, ocr_value);
+            }
+            else
+            {
+                // OCRB value represents the duty_cycle value now
+                timerr = timer_16_bit_set_ocrb_register_value(timer_config->timer_index, ocr_value);
+            }
+            if(TIMER_ERROR_OK != timerr)
+            {
+                return PWM_ERR_TIMER_ISSUE;
+            }
+            break;
+        // TOP value is governed by ICR register
+        case TIMER16BIT_WG_PWM_FAST_ICR_MAX:
+        case TIMER16BIT_WG_PWM_PHASE_CORRECT_ICR_MAX:
+        case TIMER16BIT_WG_PWM_PHASE_AND_FREQ_CORRECT_ICR_MAX:
+            break;
+
+        // TOP value is governed by OCRA value
+        case TIMER16BIT_WG_PWM_FAST_OCRA_MAX:
+        case TIMER16BIT_WG_PWM_PHASE_CORRECT_OCRA_MAX:
+        case TIMER16BIT_WG_PWM_PHASE_AND_FREQ_CORRECT_OCRA_MAX:
+            break;
+        {
+            // Select the polarity
+            if(properties->pol == PWM_POLARITY_NORMAL)
+            {
+                // When OCRA is hit, output pin should be cleared (means that output pin is SET high when counter reaches TOP)
+                timerr = timer_8_bit_async_set_compare_match_A(timer_config->timer_index, TIMER8BIT_CMOD_CLEAR_OCnX);
+            }
+            else
+            {
+                // When OCRA is hit, output pin should be set (means that output pin is CLEARED low when counter reaches TOP)
+                timerr = timer_8_bit_async_set_compare_match_A(timer_config->timer_index, TIMER8BIT_CMOD_SET_OCnX);
+            }
+            if(TIMER_ERROR_OK != timerr)
+            {
+                return PWM_ERR_TIMER_ISSUE;
+            }
+
+            // OCRA value represents the duty_cycle value now
+            ocr_value = (properties->duty_cycle * COUNTER_MAX_VALUE_8_BIT) / 100U;
+            timerr = timer_8_bit_async_set_ocra_register_value(timer_config->timer_index, ocr_value);
+            if(TIMER_ERROR_OK != timerr)
+            {
+                return PWM_ERR_TIMER_ISSUE;
+            }
+            break;
+        }
+
+        // TOP value is controlled by OCRA value
+        {    // Here, the only configuration that will make the pin work as a real PWM output (wihtout glitches) is the TIMER8BIT_CMOD_TOGGLE_OCnX
+            // So it will effectively divide the output frequency by 2 in both Fast PWM mode and Phase correct PWM mode (which already divides output frequency by 2)
+            timerr = timer_8_bit_async_set_compare_match_A(timer_config->timer_index, TIMER8BIT_ASYNC_CMOD_TOGGLE_OCnX);
+            if (TIMER_ERROR_OK != timerr)
+            {
+                return PWM_ERR_TIMER_ISSUE;
+            }
+
+            ocr_value = (*clock_freq / (prescaler_value * properties->frequency)) - 1;
+            // Trying to compensate for the 50% duty cycle and toggling mode which halves the output frequency
+            if(ocr_value > 2 )
+            {
+                ocr_value /= 2;
+            }
+            // TODO : consider using the prescaler as well, for instance if ocra is too small, we might be able to use a higher prescaler
+            // E.g : ocra can be divided by 8 (say 248 / 8 => 31) and prescaler = 1 then we can use a prescaler of 8 and have ocra at 31, and vice-versa if needed.
+            timerr = timer_8_bit_async_set_ocra_register_value(index, ocr_value);
+            if (TIMER_ERROR_OK != timerr)
+            {
+                return PWM_ERR_TIMER_ISSUE;
+            }
+            break;
+        }
+
+        // Misconfigured Timer, could not proceed further
+        // The following modes are generally used to trigger interrupts and are not used as PWM modes
+        case TIMER16BIT_WG_NORMAL:
+        case TIMER16BIT_WG_CTC_ICR_MAX:
+        case TIMER16BIT_WG_CTC_OCRA_MAX:
+        default:
+            return PWM_ERR_CONFIG;
+    }
+
+
+    return ret;
 }

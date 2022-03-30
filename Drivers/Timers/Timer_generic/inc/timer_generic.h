@@ -58,13 +58,22 @@ typedef enum
     TIMER_ERROR_ALREADY_INITIALISED,    /**< Timer has already been initialised                           */
 } timer_error_t;
 
-#define TIMER_GENERIC_8_BIT_LIMIT_VALUE (256U)
-#define TIMER_GENERIC_16_BIT_LIMIT_VALUE (65536U)
+#define TIMER_GENERIC_8_BIT_LIMIT_VALUE     (255U)
+#define TIMER_GENERIC_9_BIT_LIMIT_VALUE     (511U)
+#define TIMER_GENERIC_10_BIT_LIMIT_VALUE    (1023U)
+#define TIMER_GENERIC_16_BIT_LIMIT_VALUE    (65535U)
 
+/**
+ * @brief Encodes the various resolutions that are available in the hardware timer implementations.
+ * @note both 8 bit and 8 bit async timer share the same counter interface, and 16 bit timer can be configured to act as
+ * an 8bit, 9bit, 10bit or 16bit timer depending on the selected PWM modes.
+ */
 typedef enum
 {
-    TIMER_GENERIC_RESOLUTION_8_BIT,
-    TIMER_GENERIC_RESOLUTION_16_BIT,
+    TIMER_GENERIC_RESOLUTION_8_BIT,     /**< Used by all three hardware timer implementations, 8 bit counter                               */
+    TIMER_GENERIC_RESOLUTION_9_BIT,     /**< Used only by 16 bit timer, reduced counter span mode (9bits)                                  */
+    TIMER_GENERIC_RESOLUTION_10_BIT,    /**< Used only by 16 bit timer, reduced counter span mode (10bits)                                 */
+    TIMER_GENERIC_RESOLUTION_16_BIT,    /**< Used only by 16 bit timer, full span 16 bits counter resolution                               */
 } timer_generic_resolution_t;
 
 /**
@@ -78,32 +87,60 @@ typedef enum
     TIMER_ARCH_16_BIT       /**< Enhanced 16 bit timer counter architecture     */
 } timer_arch_t;
 
+/**
+ * @brief this bitfield structure is used to pack both prescaler value and
+ * its enum representation altogether in a tight space. It is mainly used to perform prescaler calculations
+ * and conversions/mapping
+ */
 typedef struct
 {
     uint16_t value : 11;
     uint16_t type : 5;
 } timer_generic_prescaler_pair_t;
 
+/**
+ * @brief this structure represents a basic parameter set used to compute a basic timer configuration.
+ * The input field represents the timing characteristics, current system clock frequency, etc.
+ * The output field yields the results of the conducted calculations.
+ *
+ * It is used as the interface to the generic compute parameters function, which in turn is used by each specific timer driver in order to compute a timer configuration
+ * matching as closely as possible the user provided timing characteristics.
+ */
 typedef struct
 {
     struct
     {
-        uint32_t cpu_frequency;
-        uint32_t target_frequency;
-        timer_generic_resolution_t resolution;
+        uint32_t clock_freq;                                /**< Current clock frequency used as timer clocking system. */
+                                                            /**< Note that asynchronous timers can be clocked by an external
+                                                                 clock source. Upon such cases, the clock_freq field
+                                                                 should match the frequency of the external clock source in order to yield
+                                                                 adequate results */
+        uint32_t target_frequency;                          /**< Expected resulting frequency of underlying timer (represents the number of counter cycles per second) */
+        uint16_t top_value;                                 /**< Encodes the maximum value achievable with the targeted hardware timer, based on current hardware configuration */
+        timer_generic_resolution_t resolution;              /**< Underlying timer resolution. Can be 8, 9, 10 or 16 bits or custom (ie : governed by either ICR or OCRA dependending
+                                                                 on the selected timer hardware configuration) */
         struct
         {
-            timer_generic_prescaler_pair_t const * array;
-            uint8_t size;
-        } prescaler_lookup_array;
-    } input;
+            timer_generic_prescaler_pair_t const * array;   /**< Internal prescaler lookup table, implemented in each specific timer driver variants            */
+            uint8_t size;                                   /**< States the size of the prescaler array so that we do not do a buffer overflow                  */
+        } prescaler_lookup_array;                           /**< Prescaler lookup array is used by timing computing algorithm in order to select the
+                                                                 closest prescaler value which matches the desired output timing characteristics                */
+    } input;                                                /**< Input field of this whole parameters structure, consumed as read-only by the this timer driver */
 
     struct
     {
-        uint16_t prescaler;
-        uint16_t ocr;
-        uint32_t accumulator;
-    } output;
+        uint16_t prescaler;                                 /**< Calculated prescaler, which tries to match output frequency as closely as possible while trying to
+                                                                 use the maximum counter capacity (in order to provide greater control over duty cycle and frequency,
+                                                                 if possible */
+
+        uint16_t ocr;                                       /**< Calculated trigger value, usually represents either OCRA or OCRB values, but for timer 16 bits implementations
+                                                                 it can represent ICR values as well   */
+
+        uint16_t accumulator;                               /**< Software accumulator limit value, this value is set to 0 if accumulator is not required but switches to
+                                                                 a real value in case requested frequency is slower than what hardware timer can achieve using prescalers alone.
+                                                                 It is effectively used as a software extension to the hardware based timer counters and as a result allows far
+                                                                 lower frequencies */
+    } output;                                               /**< Ouput field of this struvture is used to provide results of computations to the caller of timer_generic_compute_parameters */
 } timer_generic_parameters_t;
 
 /**

@@ -47,7 +47,7 @@ void timer_generic_compute_parameters(timer_generic_parameters_t * const paramet
 
     // Happens when timescale is really large compared to CPU frequency
     // We have to create an accumulator which will act as a second-stage prescaler
-    if (computed_ocra >= limit_value)
+    if (computed_ocra >= parameters->input.top_value)
     {
         // Select a remainder arbitrarily high to start the algorithm
         uint16_t min_remainder = 50U;
@@ -57,7 +57,7 @@ void timer_generic_compute_parameters(timer_generic_parameters_t * const paramet
         // Note that 1 is the only candidate for which the remainder will always be 0.
         // If this takes too long / too much computing power, fallback using 1 and use the accumulator value to
         // account for the remaining values.
-        for (uint16_t i = limit_value ; i >= 1 ; i--)
+        for (uint16_t i = parameters->input.top_value ; i >= 1 ; i--)
         {
             uint16_t remainder = (computed_ocra % i);
             if ((0 != remainder) && (remainder < min_remainder))
