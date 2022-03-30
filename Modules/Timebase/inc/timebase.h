@@ -81,7 +81,7 @@ typedef struct
         timer_arch_t type;  /**< Used to select a timer from its type                                       */
         uint8_t index;          /**< Used to select a particular timer from the available ones                  */
     } timer;
-    uint32_t cpu_freq;              /**< Gives the CPU frequency to compute the right prescaler for the timebase    */
+    uint32_t clock_freq;              /**< Gives the CPU frequency to compute the right prescaler for the timebase    */
 
     struct
     {

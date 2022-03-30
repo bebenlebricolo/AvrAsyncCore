@@ -70,13 +70,13 @@ void timer_8_bit_stub_get_driver_configuration(timer_8_bit_config_t * const conf
     *config = configuration.driver_config;
 }
 
-void timer_8_bit_compute_matching_parameters(const uint32_t * const cpu_freq,
+void timer_8_bit_compute_matching_parameters(const uint32_t * const clock_freq,
                                              const uint32_t * const target_freq,
                                              timer_8_bit_prescaler_selection_t * const prescaler,
                                              uint8_t * const ocra,
                                              uint16_t * const accumulator)
 {
-    (void) cpu_freq;
+    (void) clock_freq;
     (void) target_freq;
     *prescaler = configuration.prescaler;
     *ocra = configuration.ocra;

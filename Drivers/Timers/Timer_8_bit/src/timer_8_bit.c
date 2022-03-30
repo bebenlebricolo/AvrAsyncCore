@@ -86,7 +86,7 @@ uint16_t timer_8_bit_prescaler_to_value(const timer_8_bit_prescaler_selection_t 
     return 0;
 }
 
-void timer_8_bit_compute_matching_parameters(const uint32_t * const cpu_freq,
+void timer_8_bit_compute_matching_parameters(const uint32_t * const clock_freq,
                                              const uint32_t * const target_freq,
                                              timer_8_bit_prescaler_selection_t * const prescaler,
                                              uint8_t * const ocr,
@@ -96,7 +96,7 @@ void timer_8_bit_compute_matching_parameters(const uint32_t * const cpu_freq,
     {
         .input =
         {
-            .cpu_frequency = *cpu_freq,
+            .clock_freq = *clock_freq,
             .target_frequency = *target_freq,
             .resolution = TIMER_GENERIC_RESOLUTION_8_BIT,
             .prescaler_lookup_array.array = timer_8_bit_prescaler_table,
@@ -109,7 +109,7 @@ void timer_8_bit_compute_matching_parameters(const uint32_t * const cpu_freq,
     *accumulator = parameters.output.accumulator;
 }
 
-void timer_8_bit_compute_closest_prescaler(const uint32_t * const cpu_freq,
+void timer_8_bit_compute_closest_prescaler(const uint32_t * const clock_freq,
                                              const uint32_t * const target_freq,
                                              timer_8_bit_prescaler_selection_t * const prescaler)
 {
@@ -117,7 +117,7 @@ void timer_8_bit_compute_closest_prescaler(const uint32_t * const cpu_freq,
     {
         .input =
         {
-            .cpu_frequency = *cpu_freq,
+            .clock_freq = *clock_freq,
             .target_frequency = *target_freq,
             .resolution = TIMER_GENERIC_RESOLUTION_8_BIT,
             .prescaler_lookup_array.array = timer_8_bit_prescaler_table,

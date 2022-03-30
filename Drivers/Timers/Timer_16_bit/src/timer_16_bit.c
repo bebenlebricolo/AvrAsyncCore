@@ -79,7 +79,7 @@ uint16_t timer_16_bit_prescaler_to_value(const timer_16_bit_prescaler_selection_
     return 0;
 }
 
-void timer_16_bit_compute_matching_parameters(const uint32_t * const cpu_freq,
+void timer_16_bit_compute_matching_parameters(const uint32_t * const clock_freq,
                                               const uint32_t * const target_freq,
                                               timer_16_bit_prescaler_selection_t * const prescaler,
                                               uint16_t * const ocr,
@@ -89,7 +89,7 @@ void timer_16_bit_compute_matching_parameters(const uint32_t * const cpu_freq,
     {
         .input =
         {
-            .cpu_frequency = *cpu_freq,
+            .clock_freq = *clock_freq,
             .target_frequency = *target_freq,
             .resolution = TIMER_GENERIC_RESOLUTION_16_BIT,
             .prescaler_lookup_array.array = timer_16_bit_prescaler_table,

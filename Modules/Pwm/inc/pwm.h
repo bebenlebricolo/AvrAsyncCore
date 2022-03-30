@@ -237,14 +237,14 @@ pwm_error_t pwm_stop_all(void);
  * you, this is the responsibility of the Timer initialisation steps.
  * @param   pwm_instance_index  : pwm instance index as per given in config.c file
  * @param   frequency           : targeted PWM frequency
- * @param   cpu_freq            : current CPU frequency (note that if CPU frequency changes, output PWM will be off as well)
+ * @param   clock_freq            : current CPU frequency (note that if CPU frequency changes, output PWM will be off as well)
  * @return pwm_error_t:
  *      PWM_ERR_OK              : operation succeeded
  *      PWM_ERR_TIMEBASE_ISSUE  : operation did not succeed because of timebase module errors
  *      PWM_ERR_TIMER_ISSUE     : operation did not succeed because of timer drivers errors
  *      PWM_ERROR_CONFIG        : PWM configuration error, driver or dependencies were not configured correctly
 */
-pwm_error_t pwm_config_single(const uint8_t index, pwm_props_t const * const properties, const uint32_t * cpu_freq);
+pwm_error_t pwm_config_single(const uint8_t index, pwm_props_t const * const properties, const uint32_t * clock_freq);
 
 /**
  * @brief Configures a particular timer to output complementary PWM with dead time generation.
@@ -252,12 +252,12 @@ pwm_error_t pwm_config_single(const uint8_t index, pwm_props_t const * const pro
  * and symmetrical PWM output signals.
  * @see pwm_hard_compl_config_t structure for more details.
  * @param config        : input configuration structure
- * @param cpu_freq      : current CPU frequency, used to calculate timer's configuration parameters
+ * @param clock_freq      : current CPU frequency, used to calculate timer's configuration parameters
  * @return pwm_error_t:
  *      PWM_ERR_OK              : operation succeeded
  *      PWM_ERR_TIMER_ISSUE     : operation did not succeed because of timer drivers errors
  */
-pwm_error_t pwm_hard_config_complementary(pwm_hard_compl_config_t const * const config, const uint32_t * cpu_freq );
+pwm_error_t pwm_hard_config_complementary(pwm_hard_compl_config_t const * const config, const uint32_t * clock_freq );
 
 
 // Static configuration for both software based and hardware based pwms

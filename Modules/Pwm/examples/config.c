@@ -19,7 +19,7 @@ timebase_config_t timebase_static_config[TIMEBASE_MAX_INSTANCES] =
             .type = TIMER_ARCH_8_BIT,
             .index = TIMEBASE_TARGETED_TIMER_IDX,
         },
-        .cpu_freq = F_CPU,
+        .clock_freq = F_CPU,
         .timescale = TIMEBASE_TIMESCALE_MILLISECONDS
     }
 };

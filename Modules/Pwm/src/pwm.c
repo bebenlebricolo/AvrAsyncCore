@@ -37,37 +37,37 @@ static pwm_error_t pwm_init_single_hard(const uint8_t index);
  * @brief Configures a single timer 8 bit instance based on common parameters
  * @param index         : pwm instance index
  * @param properties    : pwm specifications (aka properties)
- * @param cpu_freq      : current CPU frequency
+ * @param clock_freq      : current CPU frequency
  * @return pwm_error_t  :
  *      PWM_ERROR_OK        : operation succeeded
  *      PWM_ERROR_CONFIG    : PWM configuration error, driver or dependencies were not configured correctly
  *      PWM_ERR_TIMER_ISSUE : encountered issues when configuring underlying timer, probably a global configuration error
  */
-static pwm_error_t configure_timer_8_bit_single(const uint8_t index, pwm_props_t const * const properties, const uint32_t * cpu_freq);
+static pwm_error_t configure_timer_8_bit_single(const uint8_t index, pwm_props_t const * const properties, const uint32_t * clock_freq);
 
 /**
  * @brief Configures a single timer 8 bit asynchronous instance based on common parameters
  * @param index         : pwm instance index
  * @param properties    : pwm specifications (aka properties)
- * @param cpu_freq      : current CPU frequency
+ * @param clock_freq      : current CPU frequency
  * @return pwm_error_t  :
  *      PWM_ERROR_OK        : operation succeeded
  *      PWM_ERROR_CONFIG    : PWM configuration error, driver or dependencies were not configured correctly
  *      PWM_ERR_TIMER_ISSUE : encountered issues when configuring underlying timer, probably a global configuration error
  */
-static pwm_error_t configure_timer_8_bit_async_single(const uint8_t index, pwm_props_t const * const properties, const uint32_t * cpu_freq);
+static pwm_error_t configure_timer_8_bit_async_single(const uint8_t index, pwm_props_t const * const properties, const uint32_t * clock_freq);
 
 /**
  * @brief Configures a single timer 16 bit instance based on common parameters
  * @param index         : pwm instance index
  * @param properties    : pwm specifications (aka properties)
- * @param cpu_freq      : current CPU frequency
+ * @param clock_freq      : current CPU frequency
  * @return pwm_error_t  :
  *      PWM_ERROR_OK        : operation succeeded
  *      PWM_ERROR_CONFIG    : PWM configuration error, driver or dependencies were not configured correctly
  *      PWM_ERR_TIMER_ISSUE : encountered issues when configuring underlying timer, probably a global configuration error
  */
-static pwm_error_t configure_timer_16_bit_single(const uint8_t index, pwm_props_t const * const properties, const uint32_t * cpu_freq);
+static pwm_error_t configure_timer_16_bit_single(const uint8_t index, pwm_props_t const * const properties, const uint32_t * clock_freq);
 
 pwm_error_t pwm_init(void)
 {
@@ -168,7 +168,7 @@ static pwm_error_t pwm_init_single_hard(const uint8_t index)
     return ret;
 }
 
-pwm_error_t pwm_config_single(const uint8_t index, pwm_props_t const * const properties, const uint32_t * cpu_freq)
+pwm_error_t pwm_config_single(const uint8_t index, pwm_props_t const * const properties, const uint32_t * clock_freq)
 {
     pwm_error_t ret = PWM_ERR_OK;
     if (PWM_TYPE_HARDWARE == pwm_config[index].type)
@@ -180,15 +180,15 @@ pwm_error_t pwm_config_single(const uint8_t index, pwm_props_t const * const pro
         switch(timer_config->arch)
         {
             case TIMER_ARCH_8_BIT:
-                ret = configure_timer_8_bit_single(index, properties, cpu_freq);
+                ret = configure_timer_8_bit_single(index, properties, clock_freq);
                 break;
 
             case TIMER_ARCH_8_BIT_ASYNC:
-                ret = configure_timer_8_bit_async_single(index, properties, cpu_freq);
+                ret = configure_timer_8_bit_async_single(index, properties, clock_freq);
                 break;
 
             case TIMER_ARCH_16_BIT:
-                ret = configure_timer_16_bit_single(index, properties, cpu_freq);
+                ret = configure_timer_16_bit_single(index, properties, clock_freq);
                 break;
 
             default:
@@ -207,7 +207,7 @@ pwm_error_t pwm_config_single(const uint8_t index, pwm_props_t const * const pro
 }
 
 
-static pwm_error_t configure_timer_8_bit_single(const uint8_t index, pwm_props_t const * const properties, const uint32_t * cpu_freq)
+static pwm_error_t configure_timer_8_bit_single(const uint8_t index, pwm_props_t const * const properties, const uint32_t * clock_freq)
 {
     timer_error_t timerr = TIMER_ERROR_OK;
     pwm_error_t ret = PWM_ERR_OK;
@@ -220,7 +220,7 @@ static pwm_error_t configure_timer_8_bit_single(const uint8_t index, pwm_props_t
     pwm_hard_static_config_t * timer_config = &pwm_config[index].config.hard;
 
     // Compute closest prescaler first
-    timer_8_bit_compute_closest_prescaler(cpu_freq, &properties->frequency, &prescaler);
+    timer_8_bit_compute_closest_prescaler(clock_freq, &properties->frequency, &prescaler);
     prescaler_value = timer_8_bit_prescaler_to_value(prescaler);
     timerr = timer_8_bit_set_prescaler(index, prescaler);
     if (TIMER_ERROR_OK != timerr)
@@ -282,7 +282,7 @@ static pwm_error_t configure_timer_8_bit_single(const uint8_t index, pwm_props_t
                     return PWM_ERR_TIMER_ISSUE;
                 }
 
-                ocr_value = (*cpu_freq / (prescaler_value * properties->frequency)) - 1;
+                ocr_value = (*clock_freq / (prescaler_value * properties->frequency)) - 1;
                 // Trying to compensate for the 50% duty cycle and toggling mode which halves the output frequency
                 if(ocr_value > 2 )
                 {
@@ -355,7 +355,7 @@ static pwm_error_t configure_timer_8_bit_single(const uint8_t index, pwm_props_t
                 // Compute exact frequency value for OCRA
                 // We don't try to modify OCRA value to compensate for 50% output frequency, because in this case
                 // the output pin is not toggled
-                ocr_value = (*cpu_freq / (prescaler_value * properties->frequency)) - 1;
+                ocr_value = (*clock_freq / (prescaler_value * properties->frequency)) - 1;
                 // Set timer ocra value, to control output frequency
                 timerr = timer_8_bit_set_ocra_register_value(index, ocr_value);
                 if (TIMER_ERROR_OK != timerr)

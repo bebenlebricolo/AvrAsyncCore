@@ -50,7 +50,7 @@ public:
         timer_8_bit_async_stub_reset();
         timer_16_bit_stub_reset();
 
-        timebase_static_config[0].cpu_freq = 16'000'000;
+        timebase_static_config[0].clock_freq = 16'000'000;
         timebase_static_config[0].timescale = TIMEBASE_TIMESCALE_MILLISECONDS;
         timebase_static_config[0].timer.type = TIMER_ARCH_16_BIT;
         timebase_static_config[0].timer.index = 0U;
@@ -86,7 +86,7 @@ public:
 
 TEST(timebase_module_tests, test_compute_timer_parameters)
 {
-    timebase_static_config[0].cpu_freq = 16'000'000;
+    timebase_static_config[0].clock_freq = 16'000'000;
     timebase_static_config[0].timescale = TIMEBASE_TIMESCALE_MILLISECONDS;
     timebase_static_config[0].timer.type = TIMER_ARCH_16_BIT;
     timebase_static_config[0].timer.index = 0U;
@@ -204,7 +204,7 @@ TEST(timebase_module_test, test_guard_wrong_parameters)
 
 TEST(timebase_module_tests, test_wrong_index_error_forwarding)
 {
-    timebase_static_config[0].cpu_freq = 16'000'000;
+    timebase_static_config[0].clock_freq = 16'000'000;
     timebase_static_config[0].timescale = TIMEBASE_TIMESCALE_MILLISECONDS;
 
     // This index should break execution as this timer driver does not exist (only '0' is declared)
@@ -230,7 +230,7 @@ TEST(timebase_module_tests, test_wrong_index_error_forwarding)
 
 TEST(timebase_module_tests, test_uninitialised_timer_error)
 {
-    timebase_static_config[0].cpu_freq = 16'000'000;
+    timebase_static_config[0].clock_freq = 16'000'000;
     timebase_static_config[0].timescale = TIMEBASE_TIMESCALE_MILLISECONDS;
     timebase_static_config[0].timer.type = TIMER_ARCH_16_BIT;
     timebase_static_config[0].timer.index = 0U;
