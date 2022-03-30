@@ -110,8 +110,8 @@ void timer_8_bit_compute_matching_parameters(const uint32_t * const clock_freq,
 }
 
 void timer_8_bit_compute_closest_prescaler(const uint32_t * const clock_freq,
-                                             const uint32_t * const target_freq,
-                                             timer_8_bit_prescaler_selection_t * const prescaler)
+                                           const uint32_t * const target_freq,
+                                           timer_8_bit_prescaler_selection_t * const prescaler)
 {
     timer_generic_parameters_t parameters =
     {

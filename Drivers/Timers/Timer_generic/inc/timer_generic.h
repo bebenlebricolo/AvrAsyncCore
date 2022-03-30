@@ -70,11 +70,28 @@ typedef enum
  */
 typedef enum
 {
-    TIMER_GENERIC_RESOLUTION_8_BIT,     /**< Used by all three hardware timer implementations, 8 bit counter                               */
-    TIMER_GENERIC_RESOLUTION_9_BIT,     /**< Used only by 16 bit timer, reduced counter span mode (9bits)                                  */
-    TIMER_GENERIC_RESOLUTION_10_BIT,    /**< Used only by 16 bit timer, reduced counter span mode (10bits)                                 */
-    TIMER_GENERIC_RESOLUTION_16_BIT,    /**< Used only by 16 bit timer, full span 16 bits counter resolution                               */
+    TIMER_GENERIC_RESOLUTION_UNDEFINED, /**< Default state for this resolution enum                             */
+    TIMER_GENERIC_RESOLUTION_8_BIT,     /**< Used by all three hardware timer implementations, 8 bit counter    */
+    TIMER_GENERIC_RESOLUTION_9_BIT,     /**< Used only by 16 bit timer, reduced counter span mode (9bits)       */
+    TIMER_GENERIC_RESOLUTION_10_BIT,    /**< Used only by 16 bit timer, reduced counter span mode (10bits)      */
+    TIMER_GENERIC_RESOLUTION_16_BIT,    /**< Used only by 16 bit timer, full span 16 bits counter resolution    */
+    TIMER_GENERIC_RESOLUTION_COUNT,     /**< Gives the end of the enum values scope, internal use only          */
 } timer_generic_resolution_t;
+
+/**
+ * @brief Converts the enum version of timer_generic_resolution_t into its numeric representation
+ * @param resolution : input resolution, enum form
+ * @return uint16_t  : translated value. If input resolution is set to TIMER_GENERIC_RESOLUTION_UNDEFINED, 0 is returned.
+ */
+uint16_t timer_generic_resolution_to_top_value(const timer_generic_resolution_t resolution);
+
+/**
+ * @brief Converts the a counter top value into its enum representation
+ * @param top_value  : counter top value
+ * @return timer_generic_resolution_t -> matching enum value, or TIMER_GENERIC_RESOLUTION_UNDEFINED if top_value does not map to
+ * an existing enum value counterpart
+ */
+timer_generic_resolution_t timer_generic_resolution_from_top_value(const uint16_t top_value);
 
 /**
  * @brief Encodes the various timer architecture found in AVR world
@@ -116,7 +133,6 @@ typedef struct
                                                                  should match the frequency of the external clock source in order to yield
                                                                  adequate results */
         uint32_t target_frequency;                          /**< Expected resulting frequency of underlying timer (represents the number of counter cycles per second) */
-        uint16_t top_value;                                 /**< Encodes the maximum value achievable with the targeted hardware timer, based on current hardware configuration */
         timer_generic_resolution_t resolution;              /**< Underlying timer resolution. Can be 8, 9, 10 or 16 bits or custom (ie : governed by either ICR or OCRA dependending
                                                                  on the selected timer hardware configuration) */
         struct
@@ -140,6 +156,7 @@ typedef struct
                                                                  a real value in case requested frequency is slower than what hardware timer can achieve using prescalers alone.
                                                                  It is effectively used as a software extension to the hardware based timer counters and as a result allows far
                                                                  lower frequencies */
+        uint16_t top_value;                                 /**< Stores the top value of the counter based on resolution enum input parameter                                               */
     } output;                                               /**< Ouput field of this struvture is used to provide results of computations to the caller of timer_generic_compute_parameters */
 } timer_generic_parameters_t;
 
@@ -147,14 +164,14 @@ typedef struct
  * @brief Finds the timer parameters in order to get the closest frequency out of the a given Timer
  * @param parameters : takes the .input field and computes closest values for prescaler, ocr and accumulator values
  */
-void timer_generic_compute_parameters(timer_generic_parameters_t * const parameters);
+timer_error_t timer_generic_compute_parameters(timer_generic_parameters_t * const parameters);
 
 /**
  * @brief finds the closest prescaler value that allows the selected timer to achieve the requested frequency.
  * Note that its implementation is independent of hardware timer limitations and only results from calculations on frequencies.
  * @param parameters : input parameters, also serves as output parameter block
  */
-void timer_generic_find_closest_prescaler(timer_generic_parameters_t * const parameters);
+timer_error_t timer_generic_find_closest_prescaler(timer_generic_parameters_t * const parameters);
 
 #ifdef __cplusplus
 }

@@ -79,11 +79,12 @@ uint16_t timer_16_bit_prescaler_to_value(const timer_16_bit_prescaler_selection_
     return 0;
 }
 
-void timer_16_bit_compute_matching_parameters(const uint32_t * const clock_freq,
-                                              const uint32_t * const target_freq,
-                                              timer_16_bit_prescaler_selection_t * const prescaler,
-                                              uint16_t * const ocr,
-                                              uint16_t * const accumulator)
+timer_error_t timer_16_bit_compute_matching_parameters(const uint32_t * const clock_freq,
+                                                       const uint32_t * const target_freq,
+                                                       const timer_generic_resolution_t resolution,
+                                                       timer_16_bit_prescaler_selection_t * const prescaler,
+                                                       uint16_t * const ocr,
+                                                       uint16_t * const accumulator)
 {
     timer_generic_parameters_t parameters =
     {
@@ -91,19 +92,27 @@ void timer_16_bit_compute_matching_parameters(const uint32_t * const clock_freq,
         {
             .clock_freq = *clock_freq,
             .target_frequency = *target_freq,
-            .resolution = TIMER_GENERIC_RESOLUTION_16_BIT,
+            .resolution = resolution,
             .prescaler_lookup_array.array = timer_16_bit_prescaler_table,
             .prescaler_lookup_array.size = TIMER_16_BIT_MAX_PRESCALER_COUNT,
         },
     };
-    timer_generic_compute_parameters(&parameters);
+
+    if( TIMER_ERROR_OK != timer_generic_compute_parameters(&parameters))
+    {
+        return TIMER_ERROR_CONFIG;
+    }
+
     *prescaler = timer_16_bit_prescaler_from_value(&parameters.output.prescaler);
     *ocr = parameters.output.ocr;
     *accumulator = parameters.output.accumulator;
+
+    return TIMER_ERROR_OK;
 }
 
-void timer_16_bit_compute_closest_prescaler(const uint32_t * const clock_freq,
+timer_error_t timer_16_bit_compute_closest_prescaler(const uint32_t * const clock_freq,
                                             const uint32_t * const target_freq,
+                                            const timer_generic_resolution_t resolution,
                                             timer_16_bit_prescaler_selection_t * const prescaler)
 {
     timer_generic_parameters_t parameters =
@@ -112,13 +121,19 @@ void timer_16_bit_compute_closest_prescaler(const uint32_t * const clock_freq,
         {
             .clock_freq = *clock_freq,
             .target_frequency = *target_freq,
-            .resolution = TIMER_GENERIC_RESOLUTION_16_BIT,
+            .resolution = resolution,
             .prescaler_lookup_array.array = timer_16_bit_prescaler_table,
             .prescaler_lookup_array.size = TIMER_16_BIT_MAX_PRESCALER_COUNT,
         },
     };
-    timer_generic_find_closest_prescaler(&parameters);
+
+    if(TIMER_ERROR_OK != timer_generic_find_closest_prescaler(&parameters))
+    {
+        return TIMER_ERROR_CONFIG;
+    }
+
     *prescaler = parameters.output.prescaler;
+    return TIMER_ERROR_OK;
 }
 
 static inline timer_error_t check_id(uint8_t id)

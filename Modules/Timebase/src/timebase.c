@@ -184,6 +184,7 @@ static inline timebase_error_t setup_16_bit_timer(const uint8_t timebase_id, uin
     timer_16_bit_prescaler_selection_t prescaler;
     timer_16_bit_compute_matching_parameters(clock_freq,
                                             target_freq,
+                                            TIMER_GENERIC_RESOLUTION_16_BIT,
                                             &prescaler,
                                             &ocra,
                                             &timebase_internal_config[timebase_id].accumulator.programmed);
@@ -283,6 +284,7 @@ timebase_error_t timebase_compute_timer_parameters(const uint8_t id, uint16_t * 
         case TIMER_ARCH_16_BIT:
             timer_16_bit_compute_matching_parameters(&timebase_static_config[id].clock_freq,
                                                      &target_frequency,
+                                                     TIMER_GENERIC_RESOLUTION_16_BIT,
                                                      (timer_16_bit_prescaler_selection_t *)&prescaler,
                                                      &ocra,
                                                      accumulator);
