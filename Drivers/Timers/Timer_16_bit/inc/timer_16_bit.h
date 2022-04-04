@@ -346,7 +346,25 @@ timer_error_t timer_16_bit_set_ocrb_register_value(uint8_t id, const uint16_t * 
 */
 timer_error_t timer_16_bit_get_ocrb_register_value(uint8_t id, uint16_t * const ocrb);
 
+/**
+ * @brief sets the targeted timer Input Capture Register value
+ * @param[in]   id    : targeted timer id (used to fetch internal configuration based on ids)
+ * @param[in]   icr   : icr value to be set
+ * @return
+ *      TIMER_ERROR_OK             :   operation succeeded
+ *      TIMER_ERROR_UNKNOWN_TIMER  :   given id is out of range
+*/
+timer_error_t timer_16_bit_set_icr_register_value(uint8_t id, const uint16_t icr);
 
+/**
+ * @brief fetches given timer Input Capture Register value from memory
+ * @param[in]   id    : targeted timer id (used to fetch internal configuration based on ids)
+ * @param[in]   icr   : pointer to icr value
+ * @return
+ *      TIMER_ERROR_OK             :   operation succeeded
+ *      TIMER_ERROR_UNKNOWN_TIMER  :   given id is out of range
+*/
+timer_error_t timer_16_bit_get_icr_register_value(uint8_t id, uint16_t * const icr);
 
 
 

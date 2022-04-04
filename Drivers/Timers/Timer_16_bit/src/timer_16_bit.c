@@ -793,6 +793,41 @@ timer_error_t timer_16_bit_get_ocrb_register_value(uint8_t id, uint16_t * const 
     return ret;
 }
 
+timer_error_t timer_16_bit_set_icr_register_value(uint8_t id, const uint16_t icr)
+{
+    timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
+
+    if (TIMER_ERROR_OK != ret)
+    {
+        return ret;
+    }
+
+    *handle->ICR_H = (icr & 0xFF00) >> 8U;
+    *handle->ICR_L = (icr & 0xFF);;
+    return ret;
+}
+
+timer_error_t timer_16_bit_get_icr_register_value(uint8_t id, uint16_t * const icr)
+{
+    timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
+
+    if (TIMER_ERROR_OK != ret)
+    {
+        return ret;
+    }
+
+    if ( NULL == icr)
+    {
+        return TIMER_ERROR_NULL_POINTER;
+    }
+
+    *icr =  (*handle->ICR_L);
+    *icr |= (*handle->ICR_H << 8U);
+    return ret;
+}
+
 static timer_error_t timer_16_bit_write_config(uint8_t id, timer_16_bit_config_t * const config)
 {
     timer_error_t ret = TIMER_ERROR_OK;
