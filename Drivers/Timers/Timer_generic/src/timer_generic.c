@@ -63,6 +63,8 @@ timer_generic_resolution_t timer_generic_resolution_from_top_value(const uint16_
 timer_error_t timer_generic_compute_parameters(timer_generic_parameters_t * const parameters)
 {
     const uint32_t freq_ratio = parameters->input.clock_freq / parameters->input.target_frequency;
+    uint16_t top_value = timer_generic_resolution_to_top_value(parameters->input.resolution);
+    parameters->output.top_value = top_value;
 
     if (TIMER_ERROR_OK != timer_generic_find_closest_prescaler(parameters))
     {
@@ -80,7 +82,7 @@ timer_error_t timer_generic_compute_parameters(timer_generic_parameters_t * cons
 
     // Happens when timescale is really large compared to CPU frequency
     // We have to create an accumulator which will act as a second-stage prescaler
-    if (computed_ocra >= parameters->output.top_value)
+    if (computed_ocra >= top_value)
     {
         // Select a remainder arbitrarily high to start the algorithm
         uint16_t min_remainder = 50U;

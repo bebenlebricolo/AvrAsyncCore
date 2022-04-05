@@ -63,17 +63,21 @@ void timer_16_bit_stub_reset(void)
     memset(&configuration, 0, sizeof(configuration_t));
 }
 
-void timer_16_bit_compute_matching_parameters(const uint32_t * const clock_freq,
-                                              const uint32_t * const target_freq,
-                                              timer_16_bit_prescaler_selection_t * const prescaler,
-                                              uint16_t * const ocra,
-                                              uint16_t * const accumulator)
+timer_error_t timer_16_bit_compute_matching_parameters(const uint32_t * const clock_freq,
+                                                       const uint32_t * const target_freq,
+                                                       const timer_generic_resolution_t resolution,
+                                                       timer_16_bit_prescaler_selection_t * const prescaler,
+                                                       uint16_t * const ocr,
+                                                       uint16_t * const accumulator)
 {
     (void) clock_freq;
     (void) target_freq;
+    (void) resolution;
     *prescaler = configuration.prescaler;
-    *ocra = configuration.ocra;
+    *ocr = configuration.ocra;
     *accumulator = configuration.accumulator;
+
+    return TIMER_ERROR_OK;
 }
 
 const timer_generic_prescaler_pair_t timer_16_bit_prescaler_table[TIMER_16_BIT_MAX_PRESCALER_COUNT] =

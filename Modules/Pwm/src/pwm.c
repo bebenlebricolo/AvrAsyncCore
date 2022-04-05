@@ -634,7 +634,6 @@ static pwm_error_t configure_timer_16_bit_single(const uint8_t index, pwm_props_
     pwm_error_t ret = PWM_ERR_OK;
 
     uint16_t ocr_value = 0;
-    uint16_t prescaler_value = 1U;
 
     timer_16_bit_prescaler_selection_t prescaler = TIMER16BIT_CLK_NO_CLOCK;
     timer_16_bit_waveform_generation_t waveform = TIMER16BIT_WG_NORMAL;
@@ -653,7 +652,6 @@ static pwm_error_t configure_timer_16_bit_single(const uint8_t index, pwm_props_
 
     // Compute closest prescaler first
     timer_16_bit_compute_closest_prescaler(clock_freq, &properties->frequency, resolution, &prescaler);
-    prescaler_value = timer_16_bit_prescaler_to_value(prescaler);
     timerr = timer_16_bit_set_prescaler(index, prescaler);
     if (TIMER_ERROR_OK != timerr)
     {
