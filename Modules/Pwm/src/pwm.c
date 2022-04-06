@@ -37,7 +37,7 @@ static struct
 } soft_config[PWM_MAX_SOFT_INSTANCES] = {0};
 
 
-static pwm_error_t pwm_init_single_hard(const uint8_t index);
+static pwm_error_t pwm_init_single_hard(pwm_hard_static_config_t const * const config);
 
 /**
  * @brief Configures a single timer 8 bit instance based on common parameters
@@ -78,9 +78,23 @@ static pwm_error_t configure_timer_16_bit_single(const uint8_t index, pwm_props_
 pwm_error_t pwm_init(void)
 {
     pwm_error_t err = PWM_ERR_OK;
-    for (uint8_t i = 0 ; i < PWM_MAX_HARD_INSTANCES ; i++)
+
+    uint8_t hard_config_count = 0;
+    pwm_hard_static_config_t const * hard_config[PWM_MAX_HARD_INSTANCES] = {0};
+    // Iterate over pwm_config and search hard configurations
+    for (uint8_t i = 0 ; i < PWM_TOTAL_INSTANCES ; i++)
     {
-        err |= pwm_init_single_hard(i);
+        if(PWM_TYPE_HARDWARE == pwm_config[i].type)
+        {
+            hard_config[hard_config_count] = &pwm_config[i].config.hard;
+            hard_config_count++;
+        }
+    }
+
+    // Configure all retrieved hard configs now
+    for (uint8_t i = 0 ; i < hard_config_count ; i++)
+    {
+        err |= pwm_init_single_hard(hard_config[i]);
     }
 
     if (err != PWM_ERR_OK)
@@ -92,11 +106,10 @@ pwm_error_t pwm_init(void)
 }
 
 
-static pwm_error_t check_initialisation(const uint8_t index)
+static pwm_error_t check_initialisation(pwm_hard_static_config_t const * const config)
 {
     pwm_error_t err = PWM_ERR_OK;
     bool timer_initialised = false;
-    pwm_hard_static_config_t * config = &pwm_config[index].config.hard;
     timer_error_t timerr = TIMER_ERROR_OK;
     switch(config->arch)
     {
@@ -133,13 +146,12 @@ static pwm_error_t check_initialisation(const uint8_t index)
 
 // This function essentially checks timer are setup correctly
 // and initialisation steps were performed prior to use the pwm driver.
-static pwm_error_t pwm_init_single_hard(const uint8_t index)
+static pwm_error_t pwm_init_single_hard(pwm_hard_static_config_t const * const config)
 {
     pwm_error_t ret = PWM_ERR_OK;
-    pwm_hard_static_config_t * config = &pwm_config[index].config.hard;
     timer_error_t timerr = TIMER_ERROR_OK;
 
-    ret = check_initialisation(index);
+    ret = check_initialisation(config);
     if(PWM_ERR_OK == ret)
     {
         switch(config->arch)

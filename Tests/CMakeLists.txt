@@ -73,3 +73,8 @@ add_subdirectory( ${CMAKE_CURRENT_SOURCE_DIR}/../Drivers/Io/Tests
 add_subdirectory( ${CMAKE_CURRENT_SOURCE_DIR}/../Modules/Timebase/Tests
     ${CMAKE_CURRENT_BINARY_DIR}/Tests/Modules/Timebase
 )
+
+# Modules
+add_subdirectory( ${CMAKE_CURRENT_SOURCE_DIR}/../Modules/Pwm/Tests
+    ${CMAKE_CURRENT_BINARY_DIR}/Tests/Modules/Pwm
+)

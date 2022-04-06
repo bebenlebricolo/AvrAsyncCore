@@ -22,6 +22,8 @@ extern "C"
 #warning "PWM_MAX_HARD_INSTANCES macro not defined in config.h, fallsback to 1U by default"
 #endif
 
+#define PWM_TOTAL_INSTANCES (PWM_MAX_SOFT_INSTANCES + PWM_MAX_SOFT_INSTANCES)
+
 /**
  * @brief PWM module error types used to inform caller how operations performed.
 */
@@ -261,7 +263,7 @@ pwm_error_t pwm_hard_config_complementary(pwm_hard_compl_config_t const * const 
 
 
 // Static configuration for both software based and hardware based pwms
-extern pwm_static_config_t pwm_config[PWM_MAX_SOFT_INSTANCES + PWM_MAX_HARD_INSTANCES]; /** Static compile-time configuration used by this driver (needs to be implemented in config.c)*/
+extern pwm_static_config_t pwm_config[PWM_TOTAL_INSTANCES]; /** Static compile-time configuration used by this driver (needs to be implemented in config.c)*/
 
 
 #ifdef __cplusplus
