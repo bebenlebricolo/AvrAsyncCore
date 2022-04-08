@@ -22,17 +22,19 @@ extern "C"
 #warning "PWM_MAX_HARD_INSTANCES macro not defined in config.h, fallsback to 1U by default"
 #endif
 
-#define PWM_TOTAL_INSTANCES (PWM_MAX_SOFT_INSTANCES + PWM_MAX_SOFT_INSTANCES)
+#define MHz * 1000000UL
+#define kHz * 1000U
 
 /**
  * @brief PWM module error types used to inform caller how operations performed.
 */
 typedef enum
 {
-    PWM_ERR_OK = 0,         /**< Operation succeeded, no issues                 */
-    PWM_ERR_CONFIG,         /**< Something is wrong with the configuration      */
-    PWM_ERR_TIMEBASE_ISSUE, /**< Software timebase has encountered some errors  */
-    PWM_ERR_TIMER_ISSUE     /**< Timer drivers encountered some errors          */
+    PWM_ERROR_OK = 0,               /**< Operation succeeded, no issues                 */
+    PWM_ERROR_CONFIG,               /**< Something is wrong with the configuration      */
+    PWM_ERROR_TIMEBASE_ISSUE,       /**< Software timebase has encountered some errors  */
+    PWM_ERROR_TIMER_ISSUE,          /**< Timer drivers encountered some errors          */
+    PWM_ERROR_INDEX_OUT_OF_RANGE    /**< Given pwm instance index is out of range       */
 } pwm_error_t;
 
 /**
@@ -91,12 +93,8 @@ typedef struct
  */
 typedef struct
 {
-    pwm_type_t type;    /**< Encodes the underlying type of configuration */
-    union
-    {
-        pwm_hard_static_config_t hard;  /**< Encodes the hardware static configuration */
-        pwm_soft_static_config_t soft;  /**< Encodes the software static configuration */
-    } config;
+    pwm_hard_static_config_t hard[PWM_MAX_HARD_INSTANCES];  /**< Encodes the hardware static configuration */
+    pwm_soft_static_config_t soft[PWM_MAX_SOFT_INSTANCES];  /**< Encodes the software static configuration */
 } pwm_static_config_t;
 
 /**
@@ -175,7 +173,7 @@ typedef struct
  * @return pwm_error_t:
  *      PWM_ERR_OK              : operation succeeded
  *      PWM_ERR_TIMEBASE_ISSUE  : operation did not succeed because of timebase module errors
- *      PWM_ERR_TIMER_ISSUE     : operation did not succeed because of timer drivers errors
+ *      PWM_ERROR_TIMER_ISSUE     : operation did not succeed because of timer drivers errors
 */
 pwm_error_t pwm_init(void);
 
@@ -184,43 +182,47 @@ pwm_error_t pwm_init(void);
  * @return pwm_error_t:
  *      PWM_ERR_OK              : operation succeeded
  *      PWM_ERR_TIMEBASE_ISSUE  : operation did not succeed because of timebase module errors
- *      PWM_ERR_TIMER_ISSUE     : operation did not succeed because of timer drivers errors
+ *      PWM_ERROR_TIMER_ISSUE     : operation did not succeed because of timer drivers errors
 */
 pwm_error_t pwm_process(void);
 
 /**
  * @brief Starts a single PWM. Has no effect if the PWM is already started
+ * @param index : index of targeted PWM instance within configuration structure @see pwm_config.
+ * @param type  : states the type of PWM, either software or hardware.
+ *                This is needed because configurations are separated in two different configuration arrays
  * @return pwm_error_t:
  *      PWM_ERR_OK              : operation succeeded
  *      PWM_ERR_TIMEBASE_ISSUE  : operation did not succeed because of timebase module errors
- *      PWM_ERR_TIMER_ISSUE     : operation did not succeed because of timer drivers errors
+ *      PWM_ERROR_TIMER_ISSUE     : operation did not succeed because of timer drivers errors
 */
-pwm_error_t pwm_start(const pwm_type_t type, const uint8_t index);
+pwm_error_t pwm_start(const uint8_t index, const pwm_type_t type);
 
 /**
  * @brief Starts all registered PWMs in a row
  * @return pwm_error_t:
  *      PWM_ERR_OK              : operation succeeded
  *      PWM_ERR_TIMEBASE_ISSUE  : operation did not succeed because of timebase module errors
- *      PWM_ERR_TIMER_ISSUE     : operation did not succeed because of timer drivers errors
+ *      PWM_ERROR_TIMER_ISSUE     : operation did not succeed because of timer drivers errors
 */
 pwm_error_t pwm_start_all(void);
 
 /**
  * @brief Stops a single PWM. Has no effect if the PWM is already stopped
+ * @param index : index of targeted PWM instance within configuration structure @see pwm_config.
  * @return pwm_error_t:
  *      PWM_ERR_OK              : operation succeeded
  *      PWM_ERR_TIMEBASE_ISSUE  : operation did not succeed because of timebase module errors
- *      PWM_ERR_TIMER_ISSUE     : operation did not succeed because of timer drivers errors
+ *      PWM_ERROR_TIMER_ISSUE     : operation did not succeed because of timer drivers errors
 */
-pwm_error_t pwm_stop(const pwm_type_t type, const uint8_t index);
+pwm_error_t pwm_stop(const uint8_t index, const pwm_type_t type);
 
 /**
  * @brief Stops all registered PWM instances in a row.
  * @return pwm_error_t:
  *      PWM_ERR_OK              : operation succeeded
  *      PWM_ERR_TIMEBASE_ISSUE  : operation did not succeed because of timebase module errors
- *      PWM_ERR_TIMER_ISSUE     : operation did not succeed because of timer drivers errors
+ *      PWM_ERROR_TIMER_ISSUE     : operation did not succeed because of timer drivers errors
 */
 pwm_error_t pwm_stop_all(void);
 
@@ -243,10 +245,10 @@ pwm_error_t pwm_stop_all(void);
  * @return pwm_error_t:
  *      PWM_ERR_OK              : operation succeeded
  *      PWM_ERR_TIMEBASE_ISSUE  : operation did not succeed because of timebase module errors
- *      PWM_ERR_TIMER_ISSUE     : operation did not succeed because of timer drivers errors
+ *      PWM_ERROR_TIMER_ISSUE     : operation did not succeed because of timer drivers errors
  *      PWM_ERROR_CONFIG        : PWM configuration error, driver or dependencies were not configured correctly
 */
-pwm_error_t pwm_config_single(const uint8_t index, pwm_props_t const * const properties, const uint32_t * clock_freq);
+pwm_error_t pwm_config_single(const uint8_t index, const pwm_type_t type, pwm_props_t const * const properties, const uint32_t * clock_freq);
 
 /**
  * @brief Configures a particular timer to output complementary PWM with dead time generation.
@@ -257,13 +259,13 @@ pwm_error_t pwm_config_single(const uint8_t index, pwm_props_t const * const pro
  * @param clock_freq      : current CPU frequency, used to calculate timer's configuration parameters
  * @return pwm_error_t:
  *      PWM_ERR_OK              : operation succeeded
- *      PWM_ERR_TIMER_ISSUE     : operation did not succeed because of timer drivers errors
+ *      PWM_ERROR_TIMER_ISSUE     : operation did not succeed because of timer drivers errors
  */
 pwm_error_t pwm_hard_config_complementary(pwm_hard_compl_config_t const * const config, const uint32_t * clock_freq );
 
 
 // Static configuration for both software based and hardware based pwms
-extern pwm_static_config_t pwm_config[PWM_TOTAL_INSTANCES]; /** Static compile-time configuration used by this driver (needs to be implemented in config.c)*/
+extern pwm_static_config_t pwm_config; /** Static compile-time configuration used by this driver (needs to be implemented in config.c)*/
 
 
 #ifdef __cplusplus

@@ -53,6 +53,7 @@ target_include_directories(pwm_module_tests SYSTEM PUBLIC
 
 target_link_libraries(pwm_module_tests
     pwm_module
+    timer_generic_driver
     ${GTEST_LIBRARIES}
     ${THREAD_LIB}
 )

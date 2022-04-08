@@ -24,44 +24,37 @@ timebase_config_t timebase_static_config[TIMEBASE_MAX_INSTANCES] =
     }
 };
 
-pwm_static_config_t pwm_config[PWM_MAX_HARD_INSTANCES + PWM_MAX_SOFT_INSTANCES] =
+pwm_static_config_t pwm_config =
 {
-    // Software based PWM configuration block
-    [FAN_1_PWM_IDX] =
-    {.type = PWM_TYPE_SOFTWARE,
-     .config.soft =
-     {
-        .io_index = FAN_1_IO_IDX,
-        .timebase_index = FAN_1_TIMEBASE_IDX
-     }
+    .hard =
+    {
+        // Hardware based PWM configuration block
+        [MOTOR_1_HARD_PWM_IDX] =
+        {
+            .arch = TIMER_ARCH_16_BIT,
+            .unit = PWM_HARD_TIMER_UNIT_A,
+            .timer_index = MOTOR_1_TIMER_IDX
+        },
+        [MOTOR_2_HARD_PWM_IDX] =
+        {
+            .arch = TIMER_ARCH_16_BIT,
+            .unit = PWM_HARD_TIMER_UNIT_B,
+            .timer_index = MOTOR_2_TIMER_IDX
+        }
     },
-    [FAN_2_PWM_IDX] =
-    {.type = PWM_TYPE_SOFTWARE,
-     .config.soft =
-     {
-        .io_index = FAN_2_IO_IDX,
-        .timebase_index = FAN_2_TIMEBASE_IDX
-     }
-    },
-
-    // Hardware based PWM configuration block
-    [MOTOR_1_PWM_IDX] =
-    {.type = PWM_TYPE_HARDWARE,
-     .config.hard =
-     {
-        .arch = TIMER_ARCH_16_BIT,
-        .unit = PWM_HARD_TIMER_UNIT_A,
-        .timer_index = MOTOR_1_TIMER_IDX
-     }
-    },
-    [MOTOR_2_PWM_IDX] =
-    {.type = PWM_TYPE_HARDWARE,
-     .config.hard =
-     {
-        .arch = TIMER_ARCH_16_BIT,
-        .unit = PWM_HARD_TIMER_UNIT_B,
-        .timer_index = MOTOR_2_TIMER_IDX
-     }
+    .soft =
+    {
+        // Software based PWM configuration block
+        [FAN_1_SOFT_PWM_IDX] =
+        {
+            .io_index = FAN_1_IO_IDX,
+            .timebase_index = FAN_1_TIMEBASE_IDX
+        },
+        [FAN_2_SOFT_PWM_IDX] =
+        {
+            .io_index = FAN_2_IO_IDX,
+            .timebase_index = FAN_2_TIMEBASE_IDX
+        }
     }
 };
 

@@ -32,20 +32,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "string.h"
 
 
-typedef struct
-{
-    timer_8_bit_prescaler_selection_t prescaler;
-    uint8_t ocra;
-    uint32_t accumulator;
-    bool initialised;
-    timer_8_bit_config_t driver_config;
-} configuration_t;
 
-static configuration_t configuration = {0};
+timer_8_bit_stub_configuration_t configuration = {0};
+static timer_error_t next_error = TIMER_ERROR_OK;
 
 static inline bool id_is_valid(const uint8_t id)
 {
     return (id < TIMER_8_BIT_STUB_MAX_INSTANCES);
+}
+
+timer_8_bit_stub_configuration_t* timer_8_bit_stub_get_config(void)
+{
+    return &configuration;
 }
 
 void timer_8_bit_stub_set_next_parameters(const timer_8_bit_prescaler_selection_t prescaler, const uint8_t ocra, const uint32_t accumulator)
@@ -62,7 +60,7 @@ void timer_8_bit_stub_set_initialised(const bool initialised)
 
 void timer_8_bit_stub_reset(void)
 {
-    memset(&configuration, 0, sizeof(configuration_t));
+    memset(&configuration, 0, sizeof(timer_8_bit_stub_configuration_t));
 }
 
 void timer_8_bit_stub_get_driver_configuration(timer_8_bit_config_t * const config)
@@ -83,6 +81,15 @@ void timer_8_bit_compute_matching_parameters(const uint32_t * const clock_freq,
     *accumulator = configuration.accumulator;
 }
 
+const timer_generic_prescaler_pair_t timer_8_bit_prescaler_table[TIMER_8_BIT_MAX_PRESCALER_COUNT] =
+{
+    {.value = 1U,       .type = (uint8_t) TIMER8BIT_CLK_PRESCALER_1     },
+    {.value = 8U,       .type = (uint8_t) TIMER8BIT_CLK_PRESCALER_8     },
+    {.value = 64U,      .type = (uint8_t) TIMER8BIT_CLK_PRESCALER_64    },
+    {.value = 256U,     .type = (uint8_t) TIMER8BIT_CLK_PRESCALER_256   },
+    {.value = 1024U,    .type = (uint8_t) TIMER8BIT_CLK_PRESCALER_1024  },
+};
+
 void timer_8_bit_compute_closest_prescaler(const uint32_t * const clock_freq,
                                            const uint32_t * const target_freq,
                                            timer_8_bit_prescaler_selection_t * const prescaler)
@@ -94,20 +101,14 @@ void timer_8_bit_compute_closest_prescaler(const uint32_t * const clock_freq,
             .clock_freq = *clock_freq,
             .target_frequency = *target_freq,
             .resolution = TIMER_GENERIC_RESOLUTION_8_BIT,
+            .prescaler_lookup_array.array = timer_8_bit_prescaler_table,
             .prescaler_lookup_array.size = TIMER_8_BIT_MAX_PRESCALER_COUNT,
         },
     };
+    timer_generic_find_closest_prescaler(&parameters);
     *prescaler = parameters.output.prescaler;
 }
 
-const timer_generic_prescaler_pair_t timer_8_bit_prescaler_table[TIMER_8_BIT_MAX_PRESCALER_COUNT] =
-{
-    {.value = 1U,       .type = (uint8_t) TIMER8BIT_CLK_PRESCALER_1     },
-    {.value = 8U,       .type = (uint8_t) TIMER8BIT_CLK_PRESCALER_8     },
-    {.value = 64U,      .type = (uint8_t) TIMER8BIT_CLK_PRESCALER_64    },
-    {.value = 256U,     .type = (uint8_t) TIMER8BIT_CLK_PRESCALER_256   },
-    {.value = 1024U,    .type = (uint8_t) TIMER8BIT_CLK_PRESCALER_1024  },
-};
 
 timer_8_bit_prescaler_selection_t timer_8_bit_prescaler_from_value(uint16_t const * const input_prescaler)
 {
@@ -168,11 +169,8 @@ timer_error_t timer_8_bit_get_default_config(timer_8_bit_config_t * config)
 timer_error_t timer_8_bit_set_handle(uint8_t id, timer_8_bit_handle_t * const handle)
 {
     (void) handle;
-    if (!id_is_valid(id))
-    {
-        return TIMER_ERROR_UNKNOWN_TIMER;
-    };
-    return TIMER_ERROR_OK;
+    (void) id;
+    return next_error;
 }
 
 timer_error_t timer_8_bit_get_handle(uint8_t id, timer_8_bit_handle_t * const handle)
@@ -182,252 +180,185 @@ timer_error_t timer_8_bit_get_handle(uint8_t id, timer_8_bit_handle_t * const ha
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     }
-    return TIMER_ERROR_OK;
+    return next_error;
 }
 
 timer_error_t timer_8_bit_set_force_compare_config(uint8_t id, timer_8_bit_force_compare_config_t * const force_comp_config)
 {
-    (void) force_comp_config;
-    if (!id_is_valid(id))
-    {
-        return TIMER_ERROR_UNKNOWN_TIMER;
-    };
-    return TIMER_ERROR_OK;
+    configuration.force_comp = *force_comp_config;
+    (void) id;
+    return next_error;
 }
 
 timer_error_t timer_8_bit_get_force_compare_config(uint8_t id, timer_8_bit_force_compare_config_t * force_comp_config)
 {
-    (void) force_comp_config;
-    if (!id_is_valid(id))
-    {
-        return TIMER_ERROR_UNKNOWN_TIMER;
-    };
-    return TIMER_ERROR_OK;
+    *force_comp_config = configuration.force_comp;
+    (void) id;
+    return next_error;
 }
 
 timer_error_t timer_8_bit_set_interrupt_config(uint8_t id, timer_8_bit_interrupt_config_t * const it_config)
 {
     (void) it_config;
-    if (!id_is_valid(id))
-    {
-        return TIMER_ERROR_UNKNOWN_TIMER;
-    };
-    return TIMER_ERROR_OK;
+    (void) id;
+    return next_error;
 }
 
 timer_error_t timer_8_bit_get_interrupt_config(uint8_t id, timer_8_bit_interrupt_config_t * it_config)
 {
     (void) it_config;
-    if (!id_is_valid(id))
-    {
-        return TIMER_ERROR_UNKNOWN_TIMER;
-    };
-    return TIMER_ERROR_OK;
+    (void) id;
+    return next_error;
 }
 
 #ifdef UNIT_TESTING
 timer_error_t timer_8_bit_get_interrupt_flags(uint8_t id, timer_8_bit_interrupt_config_t * it_flags)
 {
     (void) it_flags;
-    if (!id_is_valid(id))
-    {
-        return TIMER_ERROR_UNKNOWN_TIMER;
-    };
-    return TIMER_ERROR_OK;
+    (void) id;
+    return next_error;
 }
 #endif
 
 timer_error_t timer_8_bit_set_prescaler(uint8_t id, const timer_8_bit_prescaler_selection_t prescaler)
 {
-    (void) prescaler;
-    if (!id_is_valid(id))
-    {
-        return TIMER_ERROR_UNKNOWN_TIMER;
-    };
-    return TIMER_ERROR_OK;
+    configuration.prescaler = prescaler;
+    (void) id;
+    return next_error;
 }
 
 timer_error_t timer_8_bit_get_prescaler(uint8_t id, timer_8_bit_prescaler_selection_t * prescaler)
 {
-    (void) prescaler;
-    if (!id_is_valid(id))
-    {
-        return TIMER_ERROR_UNKNOWN_TIMER;
-    };
-    return TIMER_ERROR_OK;
+    *prescaler = configuration.prescaler;
+    (void) id;
+    return next_error;
 }
 
 timer_error_t timer_8_bit_set_compare_match_A(uint8_t id, const timer_8_bit_compare_output_mode_t compA)
 {
-    (void) compA;
-    if (!id_is_valid(id))
-    {
-        return TIMER_ERROR_UNKNOWN_TIMER;
-    };
-    return TIMER_ERROR_OK;
+    configuration.compA = compA;
+    (void) id;
+    return next_error;
 }
 
 timer_error_t timer_8_bit_get_compare_match_A(uint8_t id, timer_8_bit_compare_output_mode_t * compA)
 {
-    (void) compA;
-    if (!id_is_valid(id))
-    {
-        return TIMER_ERROR_UNKNOWN_TIMER;
-    };
-    return TIMER_ERROR_OK;
+    *compA = configuration.compA;
+    (void) id;
+    return next_error;
 }
 
 timer_error_t timer_8_bit_set_compare_match_B(uint8_t id, timer_8_bit_compare_output_mode_t compB)
 {
-    (void) compB;
-    if (!id_is_valid(id))
-    {
-        return TIMER_ERROR_UNKNOWN_TIMER;
-    };
-    return TIMER_ERROR_OK;
+    configuration.compB = compB;
+    (void) id;
+    return next_error;
 }
 
 timer_error_t timer_8_bit_get_compare_match_B(uint8_t id, timer_8_bit_compare_output_mode_t * compB)
 {
-    (void) compB;
-    if (!id_is_valid(id))
-    {
-        return TIMER_ERROR_UNKNOWN_TIMER;
-    };
-    return TIMER_ERROR_OK;
+    *compB = configuration.compB;
+    (void) id;
+    return next_error;
 }
 
 timer_error_t timer_8_bit_set_waveform_generation(uint8_t id, const timer_8_bit_waveform_generation_t waveform)
 {
-    (void) waveform;
-    if (!id_is_valid(id))
-    {
-        return TIMER_ERROR_UNKNOWN_TIMER;
-    };
-    return TIMER_ERROR_OK;
+    configuration.waveform = waveform;
+    (void) id;
+    return next_error;
 }
 
 timer_error_t timer_8_bit_get_waveform_generation(uint8_t id, timer_8_bit_waveform_generation_t * waveform)
 {
-    (void) waveform;
-    if (!id_is_valid(id))
-    {
-        return TIMER_ERROR_UNKNOWN_TIMER;
-    };
-    return TIMER_ERROR_OK;
+    *waveform = configuration.waveform;
+    (void) id;
+    return next_error;
 }
 
 timer_error_t timer_8_bit_set_counter_value(uint8_t id, const uint8_t ticks)
 {
-    (void) ticks;
-    if (!id_is_valid(id))
-    {
-        return TIMER_ERROR_UNKNOWN_TIMER;
-    };
-    return TIMER_ERROR_OK;
+    configuration.counter = ticks;
+    (void) id;
+    return next_error;
 }
 
 timer_error_t timer_8_bit_get_counter_value(uint8_t id, uint8_t * ticks)
 {
-    (void) ticks;
-    if (!id_is_valid(id))
-    {
-        return TIMER_ERROR_UNKNOWN_TIMER;
-    };
-    return TIMER_ERROR_OK;
+    *ticks = configuration.counter;
+    (void) id;
+    return next_error;
 }
 
 timer_error_t timer_8_bit_set_ocra_register_value(uint8_t id, uint8_t ocra)
 {
-    (void) ocra;
-    if (!id_is_valid(id))
-    {
-        return TIMER_ERROR_UNKNOWN_TIMER;
-    };
-    return TIMER_ERROR_OK;
+    configuration.ocra = ocra;
+    (void) id;
+
+    return next_error;
 }
 
 timer_error_t timer_8_bit_get_ocra_register_value(uint8_t id, uint8_t * ocra)
 {
-    (void) ocra;
-    if (!id_is_valid(id))
-    {
-        return TIMER_ERROR_UNKNOWN_TIMER;
-    };
-    return TIMER_ERROR_OK;
+    *ocra = configuration.ocra;
+    (void) id;
+
+    return next_error;
 }
 
 timer_error_t timer_8_bit_set_ocrb_register_value(uint8_t id, uint8_t ocrb)
 {
     (void) id;
-    (void) ocrb;
-    return TIMER_ERROR_OK;
+    configuration.ocrb = ocrb;
+    return next_error;
 }
 
 timer_error_t timer_8_bit_get_ocrb_register_value(uint8_t id, uint8_t * ocrb)
 {
-    (void) ocrb;
-    if (!id_is_valid(id))
-    {
-        return TIMER_ERROR_UNKNOWN_TIMER;
-    };
-    return TIMER_ERROR_OK;
+    (void) id;
+    *ocrb = configuration.ocrb;
+    return next_error;
 }
 
 timer_error_t timer_8_bit_init(uint8_t id, timer_8_bit_config_t * const config)
 {
     (void) config;
-    if (!id_is_valid(id))
-    {
-        return TIMER_ERROR_UNKNOWN_TIMER;
-    };
+    (void) id;
 
-    return TIMER_ERROR_OK;
+    return next_error;
 }
 
 timer_error_t timer_8_bit_reconfigure(uint8_t id, timer_8_bit_config_t * const config)
 {
-    if (!id_is_valid(id))
-    {
-        return TIMER_ERROR_UNKNOWN_TIMER;
-    };
+    (void) id;
     configuration.driver_config = *config;
-    return TIMER_ERROR_OK;
+    return next_error;
 }
 
 timer_error_t timer_8_bit_deinit(uint8_t id)
 {
-    if (!id_is_valid(id))
-    {
-        return TIMER_ERROR_UNKNOWN_TIMER;
-    };
-    return TIMER_ERROR_OK;
+    (void) id;
+    timer_8_bit_stub_reset();
+    return next_error;
 }
 
 timer_error_t timer_8_bit_start(uint8_t id)
 {
-    if (!id_is_valid(id))
-    {
-        return TIMER_ERROR_UNKNOWN_TIMER;
-    };
-    return TIMER_ERROR_OK;
+    configuration.started = true;
+    (void) id;
+    return next_error;
 }
 
 timer_error_t timer_8_bit_stop(uint8_t id)
 {
-    if (!id_is_valid(id))
-    {
-        return TIMER_ERROR_UNKNOWN_TIMER;
-    };
-    return TIMER_ERROR_OK;
+    configuration.started = false;
+    (void) id;
+    return next_error;
 }
 
 timer_error_t timer_8_bit_is_initialised(const uint8_t id, bool * const initialised)
 {
-    if (!id_is_valid(id))
-    {
-        return TIMER_ERROR_UNKNOWN_TIMER;
-    };
+    (void) id;
     *initialised = configuration.initialised;
-    return TIMER_ERROR_OK;
+    return next_error;
 }

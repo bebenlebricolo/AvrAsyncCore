@@ -33,10 +33,10 @@ extern "C" {
 #define PWM_MAX_SOFT_INSTANCES 2
 
 // Pseudo PWM mapping
-#define FAN_1_PWM_IDX       0
-#define FAN_2_PWM_IDX       1
-#define MOTOR_1_PWM_IDX     2
-#define MOTOR_2_PWM_IDX     3
+#define FAN_1_SOFT_PWM_IDX       0
+#define FAN_2_SOFT_PWM_IDX       1
+#define MOTOR_1_HARD_PWM_IDX     0
+#define MOTOR_2_HARD_PWM_IDX     1
 
 
 

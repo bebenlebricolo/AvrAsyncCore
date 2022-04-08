@@ -76,6 +76,17 @@ void timer_8_bit_async_compute_matching_parameters( const uint32_t * const clock
     *accumulator = configuration.accumulator;
 }
 
+const timer_generic_prescaler_pair_t timer_8_bit_async_prescaler_table[TIMER_8_BIT_ASYNC_MAX_PRESCALER_COUNT] =
+{
+    {.value = 1,    .type = (uint8_t) TIMER8BIT_ASYNC_CLK_PRESCALER_1      },
+    {.value = 8,    .type = (uint8_t) TIMER8BIT_ASYNC_CLK_PRESCALER_8      },
+    {.value = 32,   .type = (uint8_t) TIMER8BIT_ASYNC_CLK_PRESCALER_32     },
+    {.value = 64,   .type = (uint8_t) TIMER8BIT_ASYNC_CLK_PRESCALER_64     },
+    {.value = 128,  .type = (uint8_t) TIMER8BIT_ASYNC_CLK_PRESCALER_128    },
+    {.value = 256,  .type = (uint8_t) TIMER8BIT_ASYNC_CLK_PRESCALER_256    },
+    {.value = 1024, .type = (uint8_t) TIMER8BIT_ASYNC_CLK_PRESCALER_1024   },
+};
+
 void timer_8_bit_async_compute_closest_prescaler(const uint32_t * const clock_freq,
                                                  const uint32_t * const target_freq,
                                                  timer_8_bit_async_prescaler_selection_t * const prescaler)
@@ -87,23 +98,14 @@ void timer_8_bit_async_compute_closest_prescaler(const uint32_t * const clock_fr
             .clock_freq = *clock_freq,
             .target_frequency = *target_freq,
             .resolution = TIMER_GENERIC_RESOLUTION_8_BIT,
+            .prescaler_lookup_array.array = timer_8_bit_async_prescaler_table,
             .prescaler_lookup_array.size = TIMER_8_BIT_ASYNC_MAX_PRESCALER_COUNT,
         },
     };
+    timer_generic_find_closest_prescaler(&parameters);
     *prescaler = parameters.output.prescaler;
 }
 
-
-const timer_generic_prescaler_pair_t timer_8_bit_async_prescaler_table[TIMER_8_BIT_ASYNC_MAX_PRESCALER_COUNT] =
-{
-    {.value = 1,    .type = (uint8_t) TIMER8BIT_ASYNC_CLK_PRESCALER_1      },
-    {.value = 8,    .type = (uint8_t) TIMER8BIT_ASYNC_CLK_PRESCALER_8      },
-    {.value = 32,   .type = (uint8_t) TIMER8BIT_ASYNC_CLK_PRESCALER_32     },
-    {.value = 64,   .type = (uint8_t) TIMER8BIT_ASYNC_CLK_PRESCALER_64     },
-    {.value = 128,  .type = (uint8_t) TIMER8BIT_ASYNC_CLK_PRESCALER_128    },
-    {.value = 256,  .type = (uint8_t) TIMER8BIT_ASYNC_CLK_PRESCALER_256    },
-    {.value = 1024, .type = (uint8_t) TIMER8BIT_ASYNC_CLK_PRESCALER_1024   },
-};
 
 timer_8_bit_async_prescaler_selection_t timer_8_bit_async_prescaler_from_value(uint16_t const * const input_prescaler)
 {
