@@ -12,12 +12,20 @@ add_definitions(
     -DI2C_IMPLEM_FULL_DRIVER
 )
 
+option(COVERAGE OFF)
+
+if(COVERAGE)
+    set(COVERAGE_FLAGS "--coverage --ftest-coverage -fprofile-arcs")
+else()
+    set(COVERAGE_FLAGS "")
+endif()
+
 if(UNIX)
     set(AVR_INCLUDES /usr/avr/include)
-    set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3 -Wall -Wextra --coverage")
-    set(CMAKE_C_FLAGS_DEBUG "-O0 -g3 -Wall -Wextra --coverage")
-    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -Wextra --coverage")
-    set(CMAKE_C_FLAGS_RELEASE "-O3 -Wall -Wextra --coverage")
+    set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3 -Wall -Wextra ${COVERAGE_FLAGS}")
+    set(CMAKE_C_FLAGS_DEBUG "-O0 -g3 -Wall -Wextra ${COVERAGE_FLAGS}")
+    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -Wextra ${COVERAGE_FLAGS}")
+    set(CMAKE_C_FLAGS_RELEASE "-O3 -Wall -Wextra ${COVERAGE_FLAGS}")
 else()
     if (NOT DEFINED AVR_INCLUDES)
         message(FATAL_ERROR "AVR_INCLUDES variable not set, please provide the path to avr includes")
