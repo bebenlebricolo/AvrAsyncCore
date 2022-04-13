@@ -33,7 +33,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
 
-timer_8_bit_stub_configuration_t configuration = {0};
+static timer_8_bit_stub_configuration_t configuration = {0};
 static timer_error_t next_error = TIMER_ERROR_OK;
 
 static inline bool id_is_valid(const uint8_t id)

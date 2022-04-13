@@ -31,19 +31,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "timer_8_bit_async_stub.h"
 #include "string.h"
 
-typedef struct
-{
-    timer_8_bit_async_prescaler_selection_t prescaler;
-    uint8_t ocra;
-    uint32_t accumulator;
-    bool initialised;
-} configuration_t;
-
-static configuration_t configuration = {0};
+static timer_8_bit_async_stub_configuration_t configuration = {0};
+static timer_error_t next_error = TIMER_ERROR_OK;
 
 static inline bool id_is_valid(const uint8_t id)
 {
     return (id < TIMER_8_BIT_ASYNC_STUB_MAX_INSTANCES);
+}
+
+timer_8_bit_async_stub_configuration_t* timer_8_bit_async_stub_get_config(void)
+{
+    return &configuration;
 }
 
 void timer_8_bit_async_stub_set_next_parameters(const timer_8_bit_async_prescaler_selection_t prescaler, const uint8_t ocra, const uint32_t accumulator)
@@ -60,7 +58,7 @@ void timer_8_bit_async_stub_set_initialised(const bool initialised)
 
 void timer_8_bit_async_stub_reset(void)
 {
-    memset(&configuration, 0, sizeof(configuration_t));
+    memset(&configuration, 0, sizeof(timer_8_bit_async_stub_configuration_t));
 }
 
 void timer_8_bit_async_compute_matching_parameters( const uint32_t * const clock_freq,

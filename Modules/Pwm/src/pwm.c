@@ -157,7 +157,6 @@ static pwm_error_t pwm_init_single_hard(pwm_hard_static_config_t const * const c
                 timerr = timer_8_bit_stop(config->timer_index);
                 break;
 
-            // TODO report implementation to 8 bit async and 16 bit
             case TIMER_ARCH_8_BIT_ASYNC:
                 timerr = timer_8_bit_async_stop(config->timer_index);
                 break;

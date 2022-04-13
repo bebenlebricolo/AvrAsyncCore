@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -39,9 +39,27 @@ extern "C"
 #include "timer_8_bit_async.h"
 #define TIMER_8_BIT_ASYNC_STUB_MAX_INSTANCES (1U)
 
+typedef struct
+{
+    bool initialised;
+    bool started;
+    timer_8_bit_async_prescaler_selection_t prescaler;
+    uint8_t counter;
+    uint8_t ocra;
+    uint8_t ocrb;
+    uint32_t accumulator;
+    timer_8_bit_async_config_t driver_config;
+    timer_8_bit_async_waveform_generation_t waveform;
+    timer_8_bit_async_compare_output_mode_t compA;
+    timer_8_bit_async_compare_output_mode_t compB;
+    timer_8_bit_async_force_compare_config_t force_comp;
+} timer_8_bit_async_stub_configuration_t;
+
 void timer_8_bit_async_stub_set_next_parameters(const timer_8_bit_async_prescaler_selection_t prescaler, const uint8_t ocra, const uint32_t accumulator);
 void timer_8_bit_async_stub_set_initialised(const bool initialised);
 void timer_8_bit_async_stub_reset(void);
+timer_8_bit_async_stub_configuration_t* timer_8_bit_async_stub_get_config(void);
+
 #ifdef __cplusplus
 }
 #endif

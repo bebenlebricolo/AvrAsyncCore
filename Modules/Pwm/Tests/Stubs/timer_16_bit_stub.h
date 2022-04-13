@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -39,9 +39,28 @@ extern "C"
 #include "timer_16_bit.h"
 #define TIMER_16_BIT_STUB_MAX_INSTANCES (1U)
 
+typedef struct
+{
+    bool initialised;
+    bool started;
+    timer_16_bit_prescaler_selection_t prescaler;
+    uint16_t counter;
+    uint16_t ocra;
+    uint16_t ocrb;
+    uint16_t icr;
+    uint32_t accumulator;
+    timer_16_bit_config_t driver_config;
+    timer_16_bit_waveform_generation_t waveform;
+    timer_16_bit_compare_output_mode_t compA;
+    timer_16_bit_compare_output_mode_t compB;
+    timer_16_bit_force_compare_config_t force_comp;
+} timer_16_bit_stub_configuration_t;
+
 void timer_16_bit_stub_set_next_parameters(const timer_16_bit_prescaler_selection_t prescaler, const uint16_t ocra, const uint32_t accumulator);
 void timer_16_bit_stub_set_initialised(const bool initialised);
 void timer_16_bit_stub_reset(void);
+timer_16_bit_stub_configuration_t* timer_16_bit_stub_get_config(void);
+
 #ifdef __cplusplus
 }
 #endif

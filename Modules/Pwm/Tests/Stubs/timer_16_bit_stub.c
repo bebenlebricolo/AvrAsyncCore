@@ -31,21 +31,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "timer_16_bit_stub.h"
 #include "string.h"
 
-typedef struct
-{
-    timer_16_bit_prescaler_selection_t prescaler;
-    uint16_t ocra;
-    uint16_t ocrb;
-    uint16_t icr;
-    uint32_t accumulator;
-    bool initialised;
-} configuration_t;
-
-static configuration_t configuration = {0};
+static timer_16_bit_stub_configuration_t configuration = {0};
+static timer_error_t next_error = TIMER_ERROR_OK;
 
 static inline bool id_is_valid(const uint8_t id)
 {
     return (id < TIMER_16_BIT_STUB_MAX_INSTANCES);
+}
+
+timer_16_bit_stub_configuration_t* timer_16_bit_stub_get_config(void)
+{
+    return &configuration;
 }
 
 void timer_16_bit_stub_set_next_parameters(const timer_16_bit_prescaler_selection_t prescaler, const uint16_t ocra, const uint32_t accumulator)
@@ -62,7 +58,7 @@ void timer_16_bit_stub_set_initialised(const bool initialised)
 
 void timer_16_bit_stub_reset(void)
 {
-    memset(&configuration, 0, sizeof(configuration_t));
+    memset(&configuration, 0, sizeof(timer_16_bit_stub_configuration_t));
 }
 
 
