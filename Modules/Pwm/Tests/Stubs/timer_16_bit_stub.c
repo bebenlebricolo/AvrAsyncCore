@@ -99,7 +99,7 @@ timer_error_t timer_16_bit_compute_matching_parameters(const uint32_t * const cl
     *ocr = parameters.output.ocr;
     *accumulator = parameters.output.accumulator;
 
-    return TIMER_ERROR_OK;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_compute_closest_prescaler(const uint32_t * const clock_freq,
@@ -125,7 +125,7 @@ timer_error_t timer_16_bit_compute_closest_prescaler(const uint32_t * const cloc
     }
 
     *prescaler = parameters.output.prescaler;
-    return TIMER_ERROR_OK;
+    return next_error;
 }
 
 timer_16_bit_prescaler_selection_t timer_16_bit_prescaler_from_value(uint16_t const * const input_prescaler)
@@ -156,7 +156,7 @@ timer_error_t timer_16_bit_set_icr_register_value(uint8_t id, const uint16_t icr
 {
     (void) id;
     configuration.icr = icr;
-    return TIMER_ERROR_OK;
+    return next_error;
 }
 
 
@@ -202,7 +202,7 @@ timer_error_t timer_16_bit_set_handle(uint8_t id, timer_16_bit_handle_t * const 
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
     (void) handle;
-    return TIMER_ERROR_OK;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_get_handle(uint8_t id, timer_16_bit_handle_t * const handle)
@@ -212,7 +212,7 @@ timer_error_t timer_16_bit_get_handle(uint8_t id, timer_16_bit_handle_t * const 
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
     (void) handle;
-    return TIMER_ERROR_OK;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_set_force_compare_config(uint8_t id, timer_16_bit_force_compare_config_t * const force_comp_config)
@@ -221,8 +221,8 @@ timer_error_t timer_16_bit_set_force_compare_config(uint8_t id, timer_16_bit_for
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    (void) force_comp_config;
-    return TIMER_ERROR_OK;
+    configuration.force_comp = *force_comp_config;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_get_force_compare_config(uint8_t id, timer_16_bit_force_compare_config_t * force_comp_config)
@@ -231,8 +231,8 @@ timer_error_t timer_16_bit_get_force_compare_config(uint8_t id, timer_16_bit_for
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    (void) force_comp_config;
-    return TIMER_ERROR_OK;
+    *force_comp_config = configuration.force_comp;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_set_interrupt_config(uint8_t id, timer_16_bit_interrupt_config_t * const it_config)
@@ -241,8 +241,8 @@ timer_error_t timer_16_bit_set_interrupt_config(uint8_t id, timer_16_bit_interru
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    (void) it_config;
-    return TIMER_ERROR_OK;
+    configuration.it_config = *it_config;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_get_interrupt_config(uint8_t id, timer_16_bit_interrupt_config_t * it_config)
@@ -251,8 +251,8 @@ timer_error_t timer_16_bit_get_interrupt_config(uint8_t id, timer_16_bit_interru
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    (void) it_config;
-    return TIMER_ERROR_OK;
+    *it_config = configuration.it_config;
+    return next_error;
 }
 
 #ifdef UNIT_TESTING
@@ -262,8 +262,8 @@ timer_error_t timer_16_bit_get_interrupt_flags(uint8_t id, timer_16_bit_interrup
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    (void) it_flags;
-    return TIMER_ERROR_OK;
+    *it_flags = configuration.it_config;
+    return next_error;
 }
 #endif
 
@@ -273,8 +273,8 @@ timer_error_t timer_16_bit_set_prescaler(uint8_t id, const timer_16_bit_prescale
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    (void) prescaler;
-    return TIMER_ERROR_OK;
+    configuration.prescaler = prescaler;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_get_prescaler(uint8_t id, timer_16_bit_prescaler_selection_t * prescaler)
@@ -283,8 +283,8 @@ timer_error_t timer_16_bit_get_prescaler(uint8_t id, timer_16_bit_prescaler_sele
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    (void) prescaler;
-    return TIMER_ERROR_OK;
+    *prescaler = configuration.prescaler;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_set_compare_match_A(uint8_t id, const timer_16_bit_compare_output_mode_t compA)
@@ -293,8 +293,8 @@ timer_error_t timer_16_bit_set_compare_match_A(uint8_t id, const timer_16_bit_co
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    (void) compA;
-    return TIMER_ERROR_OK;
+    configuration.compA = compA;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_get_compare_match_A(uint8_t id, timer_16_bit_compare_output_mode_t * compA)
@@ -303,8 +303,8 @@ timer_error_t timer_16_bit_get_compare_match_A(uint8_t id, timer_16_bit_compare_
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    (void) compA;
-    return TIMER_ERROR_OK;
+    *compA = configuration.compA;
+    return next_error;
 }
 
 
@@ -314,8 +314,8 @@ timer_error_t timer_16_bit_set_input_compare_noise_canceler(uint8_t id, const bo
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    (void) enabled;
-    return TIMER_ERROR_OK;
+    configuration.noise_canceler_config.use_noise_canceler = enabled;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_get_input_compare_noise_canceler(uint8_t id, bool * const enabled)
@@ -324,8 +324,8 @@ timer_error_t timer_16_bit_get_input_compare_noise_canceler(uint8_t id, bool * c
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    (void) enabled;
-    return TIMER_ERROR_OK;
+    *enabled = configuration.noise_canceler_config.use_noise_canceler;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_set_input_compare_edge_select(uint8_t id, const timer_16_bit_input_capture_edge_select_flag_t edge)
@@ -334,8 +334,8 @@ timer_error_t timer_16_bit_set_input_compare_edge_select(uint8_t id, const timer
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    (void) edge;
-    return TIMER_ERROR_OK;
+    configuration.noise_canceler_config.edge_select = edge;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_get_input_compare_edge_select(uint8_t id, timer_16_bit_input_capture_edge_select_flag_t * const edge)
@@ -344,8 +344,8 @@ timer_error_t timer_16_bit_get_input_compare_edge_select(uint8_t id, timer_16_bi
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    (void) edge;
-    return TIMER_ERROR_OK;
+    *edge = configuration.noise_canceler_config.edge_select;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_get_input_capture_value(uint8_t id, uint16_t * ticks)
@@ -354,8 +354,8 @@ timer_error_t timer_16_bit_get_input_capture_value(uint8_t id, uint16_t * ticks)
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    (void) ticks;
-    return TIMER_ERROR_OK;
+    *ticks = configuration.icr;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_set_compare_match_B(uint8_t id, timer_16_bit_compare_output_mode_t compB)
@@ -364,8 +364,8 @@ timer_error_t timer_16_bit_set_compare_match_B(uint8_t id, timer_16_bit_compare_
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    (void) compB;
-    return TIMER_ERROR_OK;
+    configuration.compB = compB;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_get_compare_match_B(uint8_t id, timer_16_bit_compare_output_mode_t * compB)
@@ -374,8 +374,8 @@ timer_error_t timer_16_bit_get_compare_match_B(uint8_t id, timer_16_bit_compare_
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    (void) compB;
-    return TIMER_ERROR_OK;
+    *compB = configuration.compB;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_set_waveform_generation(uint8_t id, const timer_16_bit_waveform_generation_t waveform)
@@ -384,8 +384,8 @@ timer_error_t timer_16_bit_set_waveform_generation(uint8_t id, const timer_16_bi
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    (void) waveform;
-    return TIMER_ERROR_OK;
+    configuration.waveform = waveform;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_get_waveform_generation(uint8_t id, timer_16_bit_waveform_generation_t * waveform)
@@ -394,8 +394,8 @@ timer_error_t timer_16_bit_get_waveform_generation(uint8_t id, timer_16_bit_wave
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    (void) waveform;
-    return TIMER_ERROR_OK;
+    *waveform = configuration.waveform;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_set_counter_value(uint8_t id, const uint16_t * const ticks)
@@ -404,8 +404,8 @@ timer_error_t timer_16_bit_set_counter_value(uint8_t id, const uint16_t * const 
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    (void) ticks;
-    return TIMER_ERROR_OK;
+    configuration.counter = *ticks;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_get_counter_value(uint8_t id, uint16_t * const ticks)
@@ -414,8 +414,8 @@ timer_error_t timer_16_bit_get_counter_value(uint8_t id, uint16_t * const ticks)
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    (void) ticks;
-    return TIMER_ERROR_OK;
+    *ticks = configuration.counter;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_set_ocra_register_value(uint8_t id, const uint16_t * const ocra)
@@ -424,8 +424,8 @@ timer_error_t timer_16_bit_set_ocra_register_value(uint8_t id, const uint16_t * 
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    (void) ocra;
-    return TIMER_ERROR_OK;
+    configuration.ocra = *ocra;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_get_ocra_register_value(uint8_t id, uint16_t * const ocra)
@@ -434,8 +434,8 @@ timer_error_t timer_16_bit_get_ocra_register_value(uint8_t id, uint16_t * const 
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    (void) ocra;
-    return TIMER_ERROR_OK;
+    *ocra = configuration.ocra;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_set_ocrb_register_value(uint8_t id, const uint16_t * const ocrb)
@@ -444,8 +444,8 @@ timer_error_t timer_16_bit_set_ocrb_register_value(uint8_t id, const uint16_t * 
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    (void) ocrb;
-    return TIMER_ERROR_OK;
+    configuration.ocrb = *ocrb;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_get_ocrb_register_value(uint8_t id, uint16_t * const ocrb)
@@ -454,8 +454,8 @@ timer_error_t timer_16_bit_get_ocrb_register_value(uint8_t id, uint16_t * const 
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    (void) ocrb;
-    return TIMER_ERROR_OK;
+    *ocrb = configuration.ocrb;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_init(uint8_t id, timer_16_bit_config_t * const config)
@@ -465,7 +465,9 @@ timer_error_t timer_16_bit_init(uint8_t id, timer_16_bit_config_t * const config
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
     (void) config;
-    return TIMER_ERROR_OK;
+    timer_16_bit_stub_reset();
+
+    return next_error;
 }
 
 timer_error_t timer_16_bit_reconfigure(uint8_t id, timer_16_bit_config_t * const config)
@@ -475,7 +477,7 @@ timer_error_t timer_16_bit_reconfigure(uint8_t id, timer_16_bit_config_t * const
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
     (void) config;
-    return TIMER_ERROR_OK;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_deinit(uint8_t id)
@@ -484,7 +486,8 @@ timer_error_t timer_16_bit_deinit(uint8_t id)
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    return TIMER_ERROR_OK;
+    timer_16_bit_stub_reset();
+    return next_error;
 }
 
 timer_error_t timer_16_bit_start(uint8_t id)
@@ -493,7 +496,8 @@ timer_error_t timer_16_bit_start(uint8_t id)
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    return TIMER_ERROR_OK;
+    configuration.started = true;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_stop(uint8_t id)
@@ -502,7 +506,8 @@ timer_error_t timer_16_bit_stop(uint8_t id)
     {
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
-    return TIMER_ERROR_OK;
+    configuration.started = false;
+    return next_error;
 }
 
 timer_error_t timer_16_bit_is_initialised(const uint8_t id, bool * const initialised)
@@ -512,5 +517,5 @@ timer_error_t timer_16_bit_is_initialised(const uint8_t id, bool * const initial
         return TIMER_ERROR_UNKNOWN_TIMER;
     };
     *initialised = configuration.initialised;
-    return TIMER_ERROR_OK;
+    return next_error;
 }

@@ -244,7 +244,7 @@ TEST_F(PwmModuleTestSuite, single_16_bit_pwm_hard_configuration)
         .duty_cycle = 50U,
         .pol = PWM_POLARITY_INVERTED
     };
-    const uint32_t cpu_freq = 1 MHz;
+    const uint32_t cpu_freq = 16 MHz;
 
     // Normal Waveform generation should return an error, this pwm module does not want
     // to interfere with other components using Timers, such as a timebase for instance.
@@ -269,16 +269,16 @@ TEST_F(PwmModuleTestSuite, single_16_bit_pwm_hard_configuration)
         TIMER16BIT_WG_PWM_FAST_9_bit_FULL_RANGE,
         TIMER16BIT_WG_PWM_FAST_8_bit_FULL_RANGE,
         TIMER16BIT_WG_PWM_FAST_ICR_MAX,
-        TIMER16BIT_WG_PWM_FAST_OCRA_MAX,
+        TIMER16BIT_WG_PWM_FAST_OCRA_MAX, // Error
 
         TIMER16BIT_WG_PWM_PHASE_AND_FREQ_CORRECT_ICR_MAX,
-        TIMER16BIT_WG_PWM_PHASE_AND_FREQ_CORRECT_OCRA_MAX,
+        TIMER16BIT_WG_PWM_PHASE_AND_FREQ_CORRECT_OCRA_MAX, //Error
 
         TIMER16BIT_WG_PWM_PHASE_CORRECT_10_bit_FULL_RANGE,
         TIMER16BIT_WG_PWM_PHASE_CORRECT_9_bit_FULL_RANGE,
         TIMER16BIT_WG_PWM_PHASE_CORRECT_8_bit_FULL_RANGE,
         TIMER16BIT_WG_PWM_PHASE_CORRECT_ICR_MAX,
-        TIMER16BIT_WG_PWM_PHASE_CORRECT_OCRA_MAX,
+        TIMER16BIT_WG_PWM_PHASE_CORRECT_OCRA_MAX, // Error
     };
 
     // Select a valid waveform generation mode

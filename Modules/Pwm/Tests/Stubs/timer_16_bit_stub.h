@@ -41,19 +41,21 @@ extern "C"
 
 typedef struct
 {
-    bool initialised;
-    bool started;
-    timer_16_bit_prescaler_selection_t prescaler;
-    uint16_t counter;
-    uint16_t ocra;
-    uint16_t ocrb;
-    uint16_t icr;
-    uint32_t accumulator;
-    timer_16_bit_config_t driver_config;
-    timer_16_bit_waveform_generation_t waveform;
-    timer_16_bit_compare_output_mode_t compA;
-    timer_16_bit_compare_output_mode_t compB;
-    timer_16_bit_force_compare_config_t force_comp;
+    bool                                               initialised;
+    bool                                               started;
+    uint16_t                                           counter;
+    uint16_t                                           ocra;
+    uint16_t                                           ocrb;
+    uint16_t                                           icr;
+    uint32_t                                           accumulator;
+    timer_16_bit_prescaler_selection_t                 prescaler;
+    timer_16_bit_config_t                              driver_config;
+    timer_16_bit_waveform_generation_t                 waveform;
+    timer_16_bit_compare_output_mode_t                 compA;
+    timer_16_bit_compare_output_mode_t                 compB;
+    timer_16_bit_force_compare_config_t                force_comp;
+    timer_16_bit_interrupt_config_t                    it_config;
+    timer_16_bit_input_capture_noise_canceler_config_t noise_canceler_config;
 } timer_16_bit_stub_configuration_t;
 
 void timer_16_bit_stub_set_next_parameters(const timer_16_bit_prescaler_selection_t prescaler, const uint16_t ocra, const uint32_t accumulator);

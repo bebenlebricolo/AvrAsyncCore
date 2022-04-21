@@ -199,14 +199,14 @@ timer_error_t timer_8_bit_get_force_compare_config(uint8_t id, timer_8_bit_force
 
 timer_error_t timer_8_bit_set_interrupt_config(uint8_t id, timer_8_bit_interrupt_config_t * const it_config)
 {
-    (void) it_config;
+    configuration.it_config = *it_config;
     (void) id;
     return next_error;
 }
 
 timer_error_t timer_8_bit_get_interrupt_config(uint8_t id, timer_8_bit_interrupt_config_t * it_config)
 {
-    (void) it_config;
+    *it_config = configuration.it_config;
     (void) id;
     return next_error;
 }
@@ -214,7 +214,7 @@ timer_error_t timer_8_bit_get_interrupt_config(uint8_t id, timer_8_bit_interrupt
 #ifdef UNIT_TESTING
 timer_error_t timer_8_bit_get_interrupt_flags(uint8_t id, timer_8_bit_interrupt_config_t * it_flags)
 {
-    (void) it_flags;
+    *it_flags = configuration.it_config;
     (void) id;
     return next_error;
 }
@@ -324,6 +324,7 @@ timer_error_t timer_8_bit_init(uint8_t id, timer_8_bit_config_t * const config)
 {
     (void) config;
     (void) id;
+    timer_8_bit_stub_reset();
 
     return next_error;
 }

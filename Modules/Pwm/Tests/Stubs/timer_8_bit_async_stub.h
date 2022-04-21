@@ -43,16 +43,17 @@ typedef struct
 {
     bool initialised;
     bool started;
-    timer_8_bit_async_prescaler_selection_t prescaler;
     uint8_t counter;
     uint8_t ocra;
     uint8_t ocrb;
     uint32_t accumulator;
+    timer_8_bit_async_prescaler_selection_t prescaler;
     timer_8_bit_async_config_t driver_config;
     timer_8_bit_async_waveform_generation_t waveform;
     timer_8_bit_async_compare_output_mode_t compA;
     timer_8_bit_async_compare_output_mode_t compB;
     timer_8_bit_async_force_compare_config_t force_comp;
+    timer_8_bit_async_interrupt_config_t it_config;
 } timer_8_bit_async_stub_configuration_t;
 
 void timer_8_bit_async_stub_set_next_parameters(const timer_8_bit_async_prescaler_selection_t prescaler, const uint8_t ocra, const uint32_t accumulator);

@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -172,7 +172,7 @@ typedef struct
     timer_16_bit_compare_output_mode_t comp_match_a;  /**< Equivalent to TCCRnA COMnA0 and COMnA1 bits                            */
     timer_16_bit_compare_output_mode_t comp_match_b;  /**< Equivalent to TCCRnA COMnB0 and COMnB1 bits                            */
     timer_16_bit_waveform_generation_t waveform_mode; /**< Selects the right waveform mode and dispatch it to the right registers */
-    timer_16_bit_prescaler_selection_t  prescaler;     /**< Selects the right prescaler to be fed in the timer                     */
+    timer_16_bit_prescaler_selection_t prescaler;     /**< Selects the right prescaler to be fed in the timer                     */
     uint16_t                           counter;       /**< Gives the starting counter value when configured                       */
     uint16_t                           ocra_val;      /**< Selects the OCRA value to be used for timer events triggering          */
     uint16_t                           ocrb_val;      /**< Selects the OCRB value to be used for timer events triggering          */

@@ -53,6 +53,7 @@ typedef struct
     timer_8_bit_compare_output_mode_t compA;
     timer_8_bit_compare_output_mode_t compB;
     timer_8_bit_force_compare_config_t force_comp;
+    timer_8_bit_interrupt_config_t it_config;
 } timer_8_bit_stub_configuration_t;
 
 void timer_8_bit_stub_set_next_parameters(const timer_8_bit_prescaler_selection_t prescaler, const uint8_t ocra, const uint32_t accumulator);
