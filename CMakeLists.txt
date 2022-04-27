@@ -6,10 +6,17 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
 endif()
 
 
-project(AvrAsyncCoreLibs C)
+project(AvrAsyncCore C)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 17)
+
+# handle automatic Doxygen documentation generation if requested
+option(GENERATE_DOCUMENTATION "Generates doxygen documentation for this project" OFF)
+if(GENERATE_DOCUMENTATION)
+    find_package(Doxygen REQUIRED)
+    message(STATUS "🛈 - Doxygen documentation generation option selected, will try to build the docs !")
+endif()
 
 
 # This option, disabled by default, allows CMake to configure subproject and build examples that are located within
