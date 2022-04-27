@@ -17,11 +17,6 @@
 #endif
 
 
-#define COUNTER_MAX_VALUE_8_BIT     255U
-#define COUNTER_MAX_VALUE_9_BIT     511U
-#define COUNTER_MAX_VALUE_10_BIT    1023U
-#define COUNTER_MAX_VALUE_16_BIT    65535U
-
 /**
  * @brief Static storage for pwm configuration
  * This is done this way to enhance the dynamic nature of PWMs, so that we can
@@ -756,12 +751,6 @@ static pwm_error_t configure_timer_16_bit_single(const uint8_t index, pwm_props_
 
     // Retrieve actual current timer resolution based on current waveform generation mode as per set in timer 16 bit registers
     timer_generic_resolution_t resolution = derive_16_bit_timer_resolution_from_waveform_selection(waveform);
-
-    if(waveform == TIMER16BIT_WG_PWM_FAST_9_bit_FULL_RANGE)
-    {
-        (void) waveform;
-        asm("NOP");
-    }
 
     // Compute closest prescaler first
     timerr = timer_16_bit_compute_closest_prescaler(clock_freq, &properties->frequency, resolution, &prescaler);

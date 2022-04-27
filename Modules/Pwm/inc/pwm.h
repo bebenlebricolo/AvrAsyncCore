@@ -25,6 +25,11 @@ extern "C"
 #define MHz * 1000000UL
 #define kHz * 1000U
 
+#define COUNTER_MAX_VALUE_8_BIT     255U
+#define COUNTER_MAX_VALUE_9_BIT     511U
+#define COUNTER_MAX_VALUE_10_BIT    1023U
+#define COUNTER_MAX_VALUE_16_BIT    65535U
+
 /**
  * @brief PWM module error types used to inform caller how operations performed.
 */

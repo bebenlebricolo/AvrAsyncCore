@@ -382,9 +382,9 @@ TEST_F(PwmModule8BitTimerTestSuite, unit_a_behavioral_testing)
         ASSERT_EQ(timer_8_bit_stub_get_config()->compA, TIMER8BIT_CMOD_CLEAR_OCnX); // Normal polarity means we want to clear pin when reaching OCR value
         ASSERT_EQ(timer_8_bit_stub_get_config()->compB, TIMER8BIT_CMOD_NORMAL);     // unchanged
         ASSERT_EQ(timer_8_bit_stub_get_config()->prescaler, TIMER8BIT_CLK_PRESCALER_1);
-        ASSERT_EQ(timer_8_bit_stub_get_config()->ocra, (properties.duty_cycle * 255U) / 100U);
+        ASSERT_EQ(timer_8_bit_stub_get_config()->ocra, (properties.duty_cycle * COUNTER_MAX_VALUE_8_BIT) / 100U);
         ASSERT_EQ(properties.duty_cycle, 50U);  // Duty cycle is preserved
-        ASSERT_EQ(properties.frequency, (cpu_freq / (timer_8_bit_stub_get_config()->prescaler * (255U + 1)))); // Actual output frequency is updated accordingly
+        ASSERT_EQ(properties.frequency, (cpu_freq / (timer_8_bit_stub_get_config()->prescaler * (COUNTER_MAX_VALUE_8_BIT + 1)))); // Actual output frequency is updated accordingly
 
         properties.pol = PWM_POLARITY_INVERTED;
         error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
@@ -406,9 +406,9 @@ TEST_F(PwmModule8BitTimerTestSuite, unit_a_behavioral_testing)
         ASSERT_EQ(timer_8_bit_stub_get_config()->compA, TIMER8BIT_CMOD_CLEAR_OCnX); // Normal polarity means we want to clear pin when reaching OCR value
         ASSERT_EQ(timer_8_bit_stub_get_config()->compB, TIMER8BIT_CMOD_NORMAL);     // unchanged
         ASSERT_EQ(timer_8_bit_stub_get_config()->prescaler, TIMER8BIT_CLK_PRESCALER_1);
-        ASSERT_EQ(timer_8_bit_stub_get_config()->ocra, (properties.duty_cycle * 255U) / 100U);
+        ASSERT_EQ(timer_8_bit_stub_get_config()->ocra, (properties.duty_cycle * COUNTER_MAX_VALUE_8_BIT) / 100U);
         ASSERT_EQ(properties.duty_cycle, 50U);  // Duty cycle is preserved
-        ASSERT_EQ(properties.frequency, (cpu_freq / (timer_8_bit_stub_get_config()->prescaler * (255U + 1)))); // Actual output frequency is updated accordingly
+        ASSERT_EQ(properties.frequency, (cpu_freq / (timer_8_bit_stub_get_config()->prescaler * (COUNTER_MAX_VALUE_8_BIT + 1)))); // Actual output frequency is updated accordingly
 
         properties.pol = PWM_POLARITY_INVERTED;
         error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
@@ -486,9 +486,9 @@ TEST_F(PwmModule8BitTimerTestSuite, unit_b_behavioral_testing)
         ASSERT_EQ(timer_8_bit_stub_get_config()->compA, TIMER8BIT_CMOD_NORMAL);     // unchanged
         ASSERT_EQ(timer_8_bit_stub_get_config()->compB, TIMER8BIT_CMOD_CLEAR_OCnX); // Normal polarity means we want to clear pin when reaching OCR value
         ASSERT_EQ(timer_8_bit_stub_get_config()->prescaler, TIMER8BIT_CLK_PRESCALER_1);
-        ASSERT_EQ(timer_8_bit_stub_get_config()->ocrb, (properties.duty_cycle * 255U) / 100U);
+        ASSERT_EQ(timer_8_bit_stub_get_config()->ocrb, (properties.duty_cycle * COUNTER_MAX_VALUE_8_BIT) / 100U);
         ASSERT_EQ(properties.duty_cycle, 25U);  // Duty cycle is preserved
-        ASSERT_EQ(properties.frequency, (cpu_freq / (timer_8_bit_stub_get_config()->prescaler * (255U + 1)))); // Actual output frequency is updated accordingly
+        ASSERT_EQ(properties.frequency, (cpu_freq / (timer_8_bit_stub_get_config()->prescaler * (COUNTER_MAX_VALUE_8_BIT + 1)))); // Actual output frequency is updated accordingly
 
         properties.pol = PWM_POLARITY_INVERTED;
         error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
@@ -510,9 +510,9 @@ TEST_F(PwmModule8BitTimerTestSuite, unit_b_behavioral_testing)
         ASSERT_EQ(timer_8_bit_stub_get_config()->compA, TIMER8BIT_CMOD_NORMAL);     // unchanged
         ASSERT_EQ(timer_8_bit_stub_get_config()->compB, TIMER8BIT_CMOD_CLEAR_OCnX); // Normal polarity means we want to clear pin when reaching OCR value
         ASSERT_EQ(timer_8_bit_stub_get_config()->prescaler, TIMER8BIT_CLK_PRESCALER_1);
-        ASSERT_EQ(timer_8_bit_stub_get_config()->ocrb, (properties.duty_cycle * 255U) / 100U);
+        ASSERT_EQ(timer_8_bit_stub_get_config()->ocrb, (properties.duty_cycle * COUNTER_MAX_VALUE_8_BIT) / 100U);
         ASSERT_EQ(properties.duty_cycle, 50U);  // Duty cycle is preserved
-        ASSERT_EQ(properties.frequency, (cpu_freq / (timer_8_bit_stub_get_config()->prescaler * (255U + 1)))); // Actual output frequency is updated accordingly
+        ASSERT_EQ(properties.frequency, (cpu_freq / (timer_8_bit_stub_get_config()->prescaler * (COUNTER_MAX_VALUE_8_BIT + 1)))); // Actual output frequency is updated accordingly
 
         properties.pol = PWM_POLARITY_INVERTED;
         error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
@@ -604,9 +604,9 @@ TEST_F(PwmModule8BitAsyncTimerTestSuite, unit_a_behavioral_testing)
         ASSERT_EQ(timer_8_bit_async_stub_get_config()->compA, TIMER8BIT_ASYNC_CMOD_CLEAR_OCnX); // Normal polarity means we want to clear pin when reaching OCR value
         ASSERT_EQ(timer_8_bit_async_stub_get_config()->compB, TIMER8BIT_ASYNC_CMOD_NORMAL);     // unchanged
         ASSERT_EQ(timer_8_bit_async_stub_get_config()->prescaler, TIMER8BIT_ASYNC_CLK_PRESCALER_1);
-        ASSERT_EQ(timer_8_bit_async_stub_get_config()->ocra, (properties.duty_cycle * 255U) / 100U);
+        ASSERT_EQ(timer_8_bit_async_stub_get_config()->ocra, (properties.duty_cycle * COUNTER_MAX_VALUE_8_BIT) / 100U);
         ASSERT_EQ(properties.duty_cycle, 50U);  // Duty cycle is preserved
-        ASSERT_EQ(properties.frequency, (cpu_freq / (timer_8_bit_async_stub_get_config()->prescaler * (255U + 1)))); // Actual output frequency is updated accordingly
+        ASSERT_EQ(properties.frequency, (cpu_freq / (timer_8_bit_async_stub_get_config()->prescaler * (COUNTER_MAX_VALUE_8_BIT + 1)))); // Actual output frequency is updated accordingly
 
         properties.pol = PWM_POLARITY_INVERTED;
         error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
@@ -628,9 +628,9 @@ TEST_F(PwmModule8BitAsyncTimerTestSuite, unit_a_behavioral_testing)
         ASSERT_EQ(timer_8_bit_async_stub_get_config()->compA, TIMER8BIT_ASYNC_CMOD_CLEAR_OCnX); // Normal polarity means we want to clear pin when reaching OCR value
         ASSERT_EQ(timer_8_bit_async_stub_get_config()->compB, TIMER8BIT_ASYNC_CMOD_NORMAL);     // unchanged
         ASSERT_EQ(timer_8_bit_async_stub_get_config()->prescaler, TIMER8BIT_ASYNC_CLK_PRESCALER_1);
-        ASSERT_EQ(timer_8_bit_async_stub_get_config()->ocra, (properties.duty_cycle * 255U) / 100U);
+        ASSERT_EQ(timer_8_bit_async_stub_get_config()->ocra, (properties.duty_cycle * COUNTER_MAX_VALUE_8_BIT) / 100U);
         ASSERT_EQ(properties.duty_cycle, 50U);  // Duty cycle is preserved
-        ASSERT_EQ(properties.frequency, (cpu_freq / (timer_8_bit_async_stub_get_config()->prescaler * (255U + 1)))); // Actual output frequency is updated accordingly
+        ASSERT_EQ(properties.frequency, (cpu_freq / (timer_8_bit_async_stub_get_config()->prescaler * (COUNTER_MAX_VALUE_8_BIT + 1)))); // Actual output frequency is updated accordingly
 
         properties.pol = PWM_POLARITY_INVERTED;
         error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
@@ -708,9 +708,9 @@ TEST_F(PwmModule8BitAsyncTimerTestSuite, unit_b_behavioral_testing)
         ASSERT_EQ(timer_8_bit_async_stub_get_config()->compA, TIMER8BIT_ASYNC_CMOD_NORMAL);     // unchanged
         ASSERT_EQ(timer_8_bit_async_stub_get_config()->compB, TIMER8BIT_ASYNC_CMOD_CLEAR_OCnX); // Normal polarity means we want to clear pin when reaching OCR value
         ASSERT_EQ(timer_8_bit_async_stub_get_config()->prescaler, TIMER8BIT_ASYNC_CLK_PRESCALER_1);
-        ASSERT_EQ(timer_8_bit_async_stub_get_config()->ocrb, (properties.duty_cycle * 255U) / 100U);
+        ASSERT_EQ(timer_8_bit_async_stub_get_config()->ocrb, (properties.duty_cycle * COUNTER_MAX_VALUE_8_BIT) / 100U);
         ASSERT_EQ(properties.duty_cycle, 25U);  // Duty cycle is preserved
-        ASSERT_EQ(properties.frequency, (cpu_freq / (timer_8_bit_async_stub_get_config()->prescaler * (255U + 1)))); // Actual output frequency is updated accordingly
+        ASSERT_EQ(properties.frequency, (cpu_freq / (timer_8_bit_async_stub_get_config()->prescaler * (COUNTER_MAX_VALUE_8_BIT + 1)))); // Actual output frequency is updated accordingly
 
         properties.pol = PWM_POLARITY_INVERTED;
         error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
@@ -732,9 +732,9 @@ TEST_F(PwmModule8BitAsyncTimerTestSuite, unit_b_behavioral_testing)
         ASSERT_EQ(timer_8_bit_async_stub_get_config()->compA, TIMER8BIT_ASYNC_CMOD_NORMAL);     // unchanged
         ASSERT_EQ(timer_8_bit_async_stub_get_config()->compB, TIMER8BIT_ASYNC_CMOD_CLEAR_OCnX); // Normal polarity means we want to clear pin when reaching OCR value
         ASSERT_EQ(timer_8_bit_async_stub_get_config()->prescaler, TIMER8BIT_ASYNC_CLK_PRESCALER_1);
-        ASSERT_EQ(timer_8_bit_async_stub_get_config()->ocrb, (properties.duty_cycle * 255U) / 100U);
+        ASSERT_EQ(timer_8_bit_async_stub_get_config()->ocrb, (properties.duty_cycle * COUNTER_MAX_VALUE_8_BIT) / 100U);
         ASSERT_EQ(properties.duty_cycle, 50U);  // Duty cycle is preserved
-        ASSERT_EQ(properties.frequency, (cpu_freq / (timer_8_bit_async_stub_get_config()->prescaler * (255U + 1)))); // Actual output frequency is updated accordingly
+        ASSERT_EQ(properties.frequency, (cpu_freq / (timer_8_bit_async_stub_get_config()->prescaler * (COUNTER_MAX_VALUE_8_BIT + 1)))); // Actual output frequency is updated accordingly
 
         properties.pol = PWM_POLARITY_INVERTED;
         error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
@@ -816,147 +816,184 @@ TEST_F(PwmModule16BitTimerTestSuite, unit_a_behavioral_testing)
     ASSERT_EQ(PWM_ERROR_OK, error);
 
 
-    // Checking Pwm Fast Full Range behavior
+    // Checking Pwm 8 bit Full Range behavior
     {
-        pwm_props_t properties = { .frequency = 1 MHz, .duty_cycle = 50U, .pol = PWM_POLARITY_NORMAL };
         const uint32_t cpu_freq = 16 MHz;
 
-        (void) timer_16_bit_set_waveform_generation(0U, TIMER16BIT_WG_PWM_FAST_8_bit_FULL_RANGE);
-        error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
-        ASSERT_EQ(PWM_ERROR_OK, error);
-        ASSERT_EQ(timer_16_bit_stub_get_config()->compA, TIMER16BIT_CMOD_CLEAR_OCnX); // Normal polarity means we want to clear pin when reaching OCR value
-        ASSERT_EQ(timer_16_bit_stub_get_config()->compB, TIMER16BIT_CMOD_NORMAL);     // unchanged
-        ASSERT_EQ(timer_16_bit_stub_get_config()->prescaler, TIMER16BIT_CLK_PRESCALER_1);
-        ASSERT_EQ(timer_16_bit_stub_get_config()->ocra, (properties.duty_cycle * 255U) / 100U);
-        ASSERT_EQ(timer_16_bit_stub_get_config()->ocrb, 0U);
-        ASSERT_EQ(timer_16_bit_stub_get_config()->icr, 0U);
-        ASSERT_EQ(properties.duty_cycle, 50U);  // Duty cycle is preserved
-        ASSERT_EQ(properties.frequency, (cpu_freq / (timer_16_bit_stub_get_config()->prescaler * (255U + 1)))); // Actual output frequency is updated accordingly
+        timer_16_bit_waveform_generation_t configs[2U] =
+        {
+            TIMER16BIT_WG_PWM_FAST_8_bit_FULL_RANGE,
+            TIMER16BIT_WG_PWM_PHASE_CORRECT_8_bit_FULL_RANGE
+        };
 
-        properties.pol = PWM_POLARITY_INVERTED;
-        error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
-        ASSERT_EQ(PWM_ERROR_OK, error);
-        ASSERT_EQ(timer_16_bit_stub_get_config()->compA, TIMER16BIT_CMOD_SET_OCnX); // Normal polarity means we want to clear pin when reaching OCR value
-        ASSERT_EQ(timer_16_bit_stub_get_config()->compB, TIMER16BIT_CMOD_NORMAL);   // unchanged
-        timer_16_bit_stub_reset();
-        timer_16_bit_stub_set_initialised(true);
+        for(const auto config : configs)
+        {
+            pwm_props_t properties = { .frequency = 1 MHz, .duty_cycle = 50U, .pol = PWM_POLARITY_NORMAL };
+            (void) timer_16_bit_set_waveform_generation(0U, config);
+            error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
+            ASSERT_EQ(PWM_ERROR_OK, error);
+            ASSERT_EQ(timer_16_bit_stub_get_config()->compA, TIMER16BIT_CMOD_CLEAR_OCnX); // Normal polarity means we want to clear pin when reaching OCR value
+            ASSERT_EQ(timer_16_bit_stub_get_config()->compB, TIMER16BIT_CMOD_NORMAL);     // unchanged
+            ASSERT_EQ(timer_16_bit_stub_get_config()->prescaler, TIMER16BIT_CLK_PRESCALER_1);
+            ASSERT_EQ(timer_16_bit_stub_get_config()->ocra, (properties.duty_cycle * COUNTER_MAX_VALUE_8_BIT) / 100U);
+            ASSERT_EQ(timer_16_bit_stub_get_config()->ocrb, 0U);
+            ASSERT_EQ(timer_16_bit_stub_get_config()->icr, 0U);
+            ASSERT_EQ(properties.duty_cycle, 50U);  // Duty cycle is preserved
+            ASSERT_EQ(properties.frequency, (cpu_freq / (timer_16_bit_stub_get_config()->prescaler * (COUNTER_MAX_VALUE_8_BIT + 1)))); // Actual output frequency is updated accordingly
+
+            properties.pol = PWM_POLARITY_INVERTED;
+            error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
+            ASSERT_EQ(PWM_ERROR_OK, error);
+            ASSERT_EQ(timer_16_bit_stub_get_config()->compA, TIMER16BIT_CMOD_SET_OCnX); // Normal polarity means we want to clear pin when reaching OCR value
+            ASSERT_EQ(timer_16_bit_stub_get_config()->compB, TIMER16BIT_CMOD_NORMAL);   // unchanged
+            timer_16_bit_stub_reset();
+            timer_16_bit_stub_set_initialised(true);
+        }
     }
 
-    // Checking Pwm Fast Full Range behavior
+    // Checking Pwm 9 bit Full Range behavior
     {
-        pwm_props_t properties = { .frequency = 1 MHz, .duty_cycle = 50U, .pol = PWM_POLARITY_NORMAL };
         const uint32_t cpu_freq = 16 MHz;
 
-        (void) timer_16_bit_set_waveform_generation(0U, TIMER16BIT_WG_PWM_FAST_9_bit_FULL_RANGE);
-        error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
-        ASSERT_EQ(PWM_ERROR_OK, error);
-        ASSERT_EQ(timer_16_bit_stub_get_config()->compA, TIMER16BIT_CMOD_CLEAR_OCnX); // Normal polarity means we want to clear pin when reaching OCR value
-        ASSERT_EQ(timer_16_bit_stub_get_config()->compB, TIMER16BIT_CMOD_NORMAL);     // unchanged
-        ASSERT_EQ(timer_16_bit_stub_get_config()->prescaler, TIMER16BIT_CLK_PRESCALER_1);
-        ASSERT_EQ(timer_16_bit_stub_get_config()->ocra, (properties.duty_cycle * 511) / 100U);
-        ASSERT_EQ(timer_16_bit_stub_get_config()->ocrb, 0U);
-        ASSERT_EQ(timer_16_bit_stub_get_config()->icr, 0U);
-        ASSERT_EQ(properties.duty_cycle, 50U);  // Duty cycle is preserved
-        ASSERT_EQ(properties.frequency, (cpu_freq / (timer_16_bit_stub_get_config()->prescaler * (511 + 1)))); // Actual output frequency is updated accordingly
+        timer_16_bit_waveform_generation_t configs[2U] =
+        {
+            TIMER16BIT_WG_PWM_FAST_9_bit_FULL_RANGE,
+            TIMER16BIT_WG_PWM_PHASE_CORRECT_9_bit_FULL_RANGE
+        };
 
-        properties.pol = PWM_POLARITY_INVERTED;
-        error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
-        ASSERT_EQ(PWM_ERROR_OK, error);
-        ASSERT_EQ(timer_16_bit_stub_get_config()->compA, TIMER16BIT_CMOD_SET_OCnX); // Normal polarity means we want to clear pin when reaching OCR value
-        ASSERT_EQ(timer_16_bit_stub_get_config()->compB, TIMER16BIT_CMOD_NORMAL);   // unchanged
-        timer_16_bit_stub_reset();
-        timer_16_bit_stub_set_initialised(true);
+        for(const auto config : configs)
+        {
+            pwm_props_t properties = { .frequency = 1 MHz, .duty_cycle = 50U, .pol = PWM_POLARITY_NORMAL };
+            (void) timer_16_bit_set_waveform_generation(0U, config);
+            error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
+            ASSERT_EQ(PWM_ERROR_OK, error);
+            ASSERT_EQ(timer_16_bit_stub_get_config()->compA, TIMER16BIT_CMOD_CLEAR_OCnX); // Normal polarity means we want to clear pin when reaching OCR value
+            ASSERT_EQ(timer_16_bit_stub_get_config()->compB, TIMER16BIT_CMOD_NORMAL);     // unchanged
+            ASSERT_EQ(timer_16_bit_stub_get_config()->prescaler, TIMER16BIT_CLK_PRESCALER_1);
+            ASSERT_EQ(timer_16_bit_stub_get_config()->ocra, (properties.duty_cycle * COUNTER_MAX_VALUE_9_BIT) / 100U);
+            ASSERT_EQ(timer_16_bit_stub_get_config()->ocrb, 0U);
+            ASSERT_EQ(timer_16_bit_stub_get_config()->icr, 0U);
+            ASSERT_EQ(properties.duty_cycle, 50U);  // Duty cycle is preserved
+            ASSERT_EQ(properties.frequency, (cpu_freq / (timer_16_bit_stub_get_config()->prescaler * (COUNTER_MAX_VALUE_9_BIT + 1)))); // Actual output frequency is updated accordingly
+
+            properties.pol = PWM_POLARITY_INVERTED;
+            error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
+            ASSERT_EQ(PWM_ERROR_OK, error);
+            ASSERT_EQ(timer_16_bit_stub_get_config()->compA, TIMER16BIT_CMOD_SET_OCnX); // Normal polarity means we want to clear pin when reaching OCR value
+            ASSERT_EQ(timer_16_bit_stub_get_config()->compB, TIMER16BIT_CMOD_NORMAL);   // unchanged
+            timer_16_bit_stub_reset();
+            timer_16_bit_stub_set_initialised(true);
+        }
     }
 
-    // Checking Pwm Fast Full Range behavior
+    // Checking Pwm 10 bit Full Range behavior
     {
-        pwm_props_t properties = { .frequency = 1 MHz, .duty_cycle = 50U, .pol = PWM_POLARITY_NORMAL };
         const uint32_t cpu_freq = 16 MHz;
 
-        (void) timer_16_bit_set_waveform_generation(0U, TIMER16BIT_WG_PWM_FAST_10_bit_FULL_RANGE);
-        error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
-        ASSERT_EQ(PWM_ERROR_OK, error);
-        ASSERT_EQ(timer_16_bit_stub_get_config()->compA, TIMER16BIT_CMOD_CLEAR_OCnX); // Normal polarity means we want to clear pin when reaching OCR value
-        ASSERT_EQ(timer_16_bit_stub_get_config()->compB, TIMER16BIT_CMOD_NORMAL);     // unchanged
-        ASSERT_EQ(timer_16_bit_stub_get_config()->prescaler, TIMER16BIT_CLK_PRESCALER_1);
-        ASSERT_EQ(timer_16_bit_stub_get_config()->ocra, (properties.duty_cycle * 1023U) / 100U);
-        ASSERT_EQ(timer_16_bit_stub_get_config()->ocrb, 0U);
-        ASSERT_EQ(timer_16_bit_stub_get_config()->icr, 0U);
-        ASSERT_EQ(properties.duty_cycle, 50U);  // Duty cycle is preserved
-        ASSERT_EQ(properties.frequency, (cpu_freq / (timer_16_bit_stub_get_config()->prescaler * (1023U + 1)))); // Actual output frequency is updated accordingly
 
-        properties.pol = PWM_POLARITY_INVERTED;
-        error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
-        ASSERT_EQ(PWM_ERROR_OK, error);
-        ASSERT_EQ(timer_16_bit_stub_get_config()->compA, TIMER16BIT_CMOD_SET_OCnX); // Normal polarity means we want to clear pin when reaching OCR value
-        ASSERT_EQ(timer_16_bit_stub_get_config()->compB, TIMER16BIT_CMOD_NORMAL);   // unchanged
-        timer_16_bit_stub_reset();
-        timer_16_bit_stub_set_initialised(true);
+        timer_16_bit_waveform_generation_t configs[2U] =
+        {
+            TIMER16BIT_WG_PWM_FAST_10_bit_FULL_RANGE,
+            TIMER16BIT_WG_PWM_PHASE_CORRECT_10_bit_FULL_RANGE
+        };
+
+        for(const auto config : configs)
+        {
+            pwm_props_t properties = { .frequency = 1 MHz, .duty_cycle = 50U, .pol = PWM_POLARITY_NORMAL };
+            (void) timer_16_bit_set_waveform_generation(0U, config);
+            error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
+            ASSERT_EQ(PWM_ERROR_OK, error);
+            ASSERT_EQ(timer_16_bit_stub_get_config()->compA, TIMER16BIT_CMOD_CLEAR_OCnX); // Normal polarity means we want to clear pin when reaching OCR value
+            ASSERT_EQ(timer_16_bit_stub_get_config()->compB, TIMER16BIT_CMOD_NORMAL);     // unchanged
+            ASSERT_EQ(timer_16_bit_stub_get_config()->prescaler, TIMER16BIT_CLK_PRESCALER_1);
+            ASSERT_EQ(timer_16_bit_stub_get_config()->ocra, (properties.duty_cycle * COUNTER_MAX_VALUE_10_BIT) / 100U);
+            ASSERT_EQ(timer_16_bit_stub_get_config()->ocrb, 0U);
+            ASSERT_EQ(timer_16_bit_stub_get_config()->icr, 0U);
+            ASSERT_EQ(properties.duty_cycle, 50U);  // Duty cycle is preserved
+            ASSERT_EQ(properties.frequency, (cpu_freq / (timer_16_bit_stub_get_config()->prescaler * (COUNTER_MAX_VALUE_10_BIT + 1)))); // Actual output frequency is updated accordingly
+
+            properties.pol = PWM_POLARITY_INVERTED;
+            error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
+            ASSERT_EQ(PWM_ERROR_OK, error);
+            ASSERT_EQ(timer_16_bit_stub_get_config()->compA, TIMER16BIT_CMOD_SET_OCnX); // Normal polarity means we want to clear pin when reaching OCR value
+            ASSERT_EQ(timer_16_bit_stub_get_config()->compB, TIMER16BIT_CMOD_NORMAL);   // unchanged
+            timer_16_bit_stub_reset();
+            timer_16_bit_stub_set_initialised(true);
+        }
     }
 
     // Checking Pwm Phase Correct Full Range behavior
     {
-        pwm_props_t properties = { .frequency = 1 MHz, .duty_cycle = 50U, .pol = PWM_POLARITY_NORMAL };
         const uint32_t cpu_freq = 16 MHz;
 
-        (void) timer_16_bit_set_waveform_generation(0U, TIMER16BIT_WG_PWM_FAST_ICR_MAX);
-        error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
-        ASSERT_EQ(PWM_ERROR_OK, error);
-        ASSERT_EQ(timer_16_bit_stub_get_config()->compA, TIMER16BIT_CMOD_CLEAR_OCnX); // Normal polarity means we want to clear pin when reaching OCR value
-        ASSERT_EQ(timer_16_bit_stub_get_config()->compB, TIMER16BIT_CMOD_NORMAL);     // unchanged
-        ASSERT_EQ(timer_16_bit_stub_get_config()->prescaler, TIMER16BIT_CLK_PRESCALER_1);
-        ASSERT_EQ(timer_16_bit_stub_get_config()->ocra, (properties.duty_cycle * 255U) / 100U);
-        ASSERT_EQ(properties.duty_cycle, 50U);  // Duty cycle is preserved
-        ASSERT_EQ(properties.frequency, (cpu_freq / (timer_16_bit_stub_get_config()->prescaler * (255U + 1)))); // Actual output frequency is updated accordingly
 
-        properties.pol = PWM_POLARITY_INVERTED;
-        error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
-        ASSERT_EQ(PWM_ERROR_OK, error);
-        ASSERT_EQ(timer_16_bit_stub_get_config()->compA, TIMER16BIT_CMOD_SET_OCnX); // Normal polarity means we want to clear pin when reaching OCR value
-        ASSERT_EQ(timer_16_bit_stub_get_config()->compB, TIMER16BIT_CMOD_NORMAL);   // unchanged
+        timer_16_bit_waveform_generation_t configs[3U] =
+        {
+            TIMER16BIT_WG_PWM_FAST_ICR_MAX,
+            TIMER16BIT_WG_PWM_PHASE_CORRECT_ICR_MAX,
+            TIMER16BIT_WG_PWM_PHASE_AND_FREQ_CORRECT_ICR_MAX
+        };
 
-        timer_16_bit_stub_reset();
-        timer_16_bit_stub_set_initialised(true);
+        for(const auto config : configs)
+        {
+            pwm_props_t properties = { .frequency = 1 MHz, .duty_cycle = 50U, .pol = PWM_POLARITY_NORMAL };
+
+            (void) timer_16_bit_set_waveform_generation(0U, config);
+            error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
+            ASSERT_EQ(PWM_ERROR_OK, error);
+            ASSERT_EQ(timer_16_bit_stub_get_config()->compA, TIMER16BIT_CMOD_CLEAR_OCnX); // Normal polarity means we want to clear pin when reaching OCR value
+            ASSERT_EQ(timer_16_bit_stub_get_config()->compB, TIMER16BIT_CMOD_NORMAL);     // unchanged
+            ASSERT_EQ(timer_16_bit_stub_get_config()->prescaler, TIMER16BIT_CLK_PRESCALER_1);
+            ASSERT_EQ(timer_16_bit_stub_get_config()->ocra, 7U);
+            ASSERT_EQ(timer_16_bit_stub_get_config()->icr, 15U);
+            ASSERT_EQ(timer_16_bit_stub_get_config()->ocrb, 0U);
+
+            ASSERT_EQ(properties.duty_cycle, 50U);  // Duty cycle is preserved
+            ASSERT_EQ(properties.frequency, 1 MHz); // Actual output frequency is updated accordingly
+
+            properties.pol = PWM_POLARITY_INVERTED;
+            error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
+            ASSERT_EQ(PWM_ERROR_OK, error);
+            ASSERT_EQ(timer_16_bit_stub_get_config()->compA, TIMER16BIT_CMOD_SET_OCnX); // Normal polarity means we want to clear pin when reaching OCR value
+            ASSERT_EQ(timer_16_bit_stub_get_config()->compB, TIMER16BIT_CMOD_NORMAL);   // unchanged
+
+            timer_16_bit_stub_reset();
+            timer_16_bit_stub_set_initialised(true);
+        }
     }
 
     // Checking Pwm Fast Mode OCRA Max behavior
     {
-        pwm_props_t properties = { .frequency = 1 MHz, .duty_cycle = 25U, .pol = PWM_POLARITY_NORMAL };
         const uint32_t cpu_freq = 16 MHz;
 
-        (void) timer_16_bit_set_waveform_generation(0U, TIMER16BIT_WG_PWM_FAST_OCRA_MAX);
-        error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
-        ASSERT_EQ(PWM_ERROR_OK, error);
-        ASSERT_EQ(timer_16_bit_stub_get_config()->compA, TIMER16BIT_CMOD_TOGGLE_OCnX); // Switched to toggling pin, frequency halved (or compensated)
-        ASSERT_EQ(timer_16_bit_stub_get_config()->compB, TIMER16BIT_CMOD_NORMAL);      // unchanged
-        ASSERT_EQ(timer_16_bit_stub_get_config()->prescaler, TIMER16BIT_CLK_PRESCALER_1);
-        ASSERT_EQ(timer_16_bit_stub_get_config()->ocra, 7U); // 1MHz frequency with 50% duty cycle (pin toggled, so ocra halved)
 
-        ASSERT_EQ(properties.duty_cycle, 50U);  // Duty cycle is preserved
-        ASSERT_EQ(properties.frequency, 1 MHz); // Actual output frequency is updated accordingly
+        timer_16_bit_waveform_generation_t configs[3U] =
+        {
+            TIMER16BIT_WG_PWM_FAST_OCRA_MAX,
+            TIMER16BIT_WG_PWM_PHASE_CORRECT_OCRA_MAX,
+            TIMER16BIT_WG_PWM_PHASE_AND_FREQ_CORRECT_OCRA_MAX
+        };
 
-        timer_16_bit_stub_reset();
-        timer_16_bit_stub_set_initialised(true);
-    }
+        for(const auto config : configs)
+        {
+            pwm_props_t properties = { .frequency = 1 MHz, .duty_cycle = 25U, .pol = PWM_POLARITY_NORMAL };
 
-    // Checking Pwm Phase Correct OCRA Max behavior
-    {
-        pwm_props_t properties = { .frequency = 1 MHz, .duty_cycle = 25U, .pol = PWM_POLARITY_NORMAL };
-        const uint32_t cpu_freq = 16 MHz;
+            (void) timer_16_bit_set_waveform_generation(0U, config);
+            error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
+            ASSERT_EQ(PWM_ERROR_OK, error);
+            ASSERT_EQ(timer_16_bit_stub_get_config()->compA, TIMER16BIT_CMOD_TOGGLE_OCnX); // Normal polarity means we want to clear pin when reaching OCR value
+            ASSERT_EQ(timer_16_bit_stub_get_config()->compB, TIMER16BIT_CMOD_NORMAL);     // unchanged
+            ASSERT_EQ(timer_16_bit_stub_get_config()->prescaler, TIMER16BIT_CLK_PRESCALER_1);
+            ASSERT_EQ(timer_16_bit_stub_get_config()->ocra, 7U);
+            ASSERT_EQ(timer_16_bit_stub_get_config()->icr, 0U);
+            ASSERT_EQ(timer_16_bit_stub_get_config()->ocrb, 0U);
 
-        (void) timer_16_bit_set_waveform_generation(0U, TIMER16BIT_WG_PWM_PHASE_CORRECT_OCRA_MAX);
-        error = pwm_config_single(0U, PWM_TYPE_HARDWARE, &properties, &cpu_freq);
-        ASSERT_EQ(PWM_ERROR_OK, error);
-        ASSERT_EQ(timer_16_bit_stub_get_config()->compA, TIMER16BIT_CMOD_TOGGLE_OCnX); // Switched to toggling pin, frequency halved (or compensated)
-        ASSERT_EQ(timer_16_bit_stub_get_config()->compB, TIMER16BIT_CMOD_NORMAL);      // unchanged
-        ASSERT_EQ(timer_16_bit_stub_get_config()->prescaler, TIMER16BIT_CLK_PRESCALER_1);
-        ASSERT_EQ(timer_16_bit_stub_get_config()->ocra, 7U); // 1MHz frequency with 50% duty cycle (pin toggled, so ocra halved)
+            ASSERT_EQ(properties.duty_cycle, 50U);  // Duty cycle is preserved
+            ASSERT_EQ(properties.frequency, 1 MHz); // Actual output frequency is updated accordingly
 
-        ASSERT_EQ(properties.duty_cycle, 50U);  // Duty cycle is preserved
-        ASSERT_EQ(properties.frequency, 1 MHz); // Actual output frequency is updated accordingly
-
-        timer_16_bit_stub_reset();
-        timer_16_bit_stub_set_initialised(true);
+            timer_16_bit_stub_reset();
+            timer_16_bit_stub_set_initialised(true);
+        }
     }
 }
 
