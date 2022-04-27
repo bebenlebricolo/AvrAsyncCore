@@ -553,6 +553,10 @@ static pwm_error_t configure_timer_8_bit_async_single(const uint8_t index, pwm_p
                 {
                     return PWM_ERROR_TIMER_ISSUE;
                 }
+
+                // Properties object needs to be updated with the actual frequency used by the timer
+                properties->frequency = (*clock_freq / (prescaler_value * (COUNTER_MAX_VALUE_8_BIT + 1)));
+
                 break;
             }
             // TOP value is controlled by OCRA value
@@ -579,6 +583,13 @@ static pwm_error_t configure_timer_8_bit_async_single(const uint8_t index, pwm_p
                 {
                     return PWM_ERROR_TIMER_ISSUE;
                 }
+
+                // Properties object needs to be updated with the actual frequency used by the timer
+                // Note that OCRA needs to be multiplied by 2 because of the toggling nature of the output pin ;
+                // So it behaves as if ocra was twice as large with a normal COMP mode switching
+                properties->frequency = (*clock_freq / (prescaler_value * (ocr_value + 1) * 2));
+                properties->duty_cycle = 50U;
+
                 break;
 
             // Misconfigured Timer, could not proceed further
@@ -619,6 +630,7 @@ static pwm_error_t configure_timer_8_bit_async_single(const uint8_t index, pwm_p
                 {
                     return PWM_ERROR_TIMER_ISSUE;
                 }
+                properties->frequency = (*clock_freq / (prescaler_value * (COUNTER_MAX_VALUE_8_BIT + 1)));
 
                 break;
             }
@@ -638,6 +650,7 @@ static pwm_error_t configure_timer_8_bit_async_single(const uint8_t index, pwm_p
                 {
                     return PWM_ERROR_TIMER_ISSUE;
                 }
+                properties->frequency = (*clock_freq / (prescaler_value * (ocr_value + 1)));
 
                 // Compute exact duty cycle value for OCRB (reuse the ocr_value variable)
                 ocr_value = (properties->duty_cycle * ocr_value) / 100U;
