@@ -619,6 +619,47 @@ TEST(timer_16_bit_driver_tests, test_parameters_computation_prescaler)
     ASSERT_EQ(accumulator, 0U);
 }
 
+TEST(timer_16_bit_driver_tests, test_find_closest_prescaler_function)
+{
+    timer_error_t err = TIMER_ERROR_OK;
+    uint32_t clock_freq = 16'000'000;
+    uint32_t target_freq = 1'000'000;
+
+    timer_16_bit_prescaler_selection_t prescaler = TIMER16BIT_CLK_PRESCALER_1;
+    err = timer_16_bit_compute_closest_prescaler(&clock_freq, &target_freq, TIMER_GENERIC_RESOLUTION_16_BIT, &prescaler);
+    ASSERT_EQ(err, TIMER_ERROR_OK);
+    ASSERT_EQ(prescaler, TIMER16BIT_CLK_PRESCALER_1);
+
+    target_freq = 1'000;
+    err = timer_16_bit_compute_closest_prescaler(&clock_freq, &target_freq, TIMER_GENERIC_RESOLUTION_16_BIT, &prescaler);
+    ASSERT_EQ(err, TIMER_ERROR_OK);
+    ASSERT_EQ(prescaler, TIMER16BIT_CLK_PRESCALER_1);
+
+
+    target_freq = 3'000;
+    err = timer_16_bit_compute_closest_prescaler(&clock_freq, &target_freq, TIMER_GENERIC_RESOLUTION_16_BIT, &prescaler);
+    ASSERT_EQ(err, TIMER_ERROR_OK);
+    ASSERT_EQ(prescaler, TIMER16BIT_CLK_PRESCALER_1);
+
+    target_freq = 5'000;
+    err = timer_16_bit_compute_closest_prescaler(&clock_freq, &target_freq, TIMER_GENERIC_RESOLUTION_16_BIT, &prescaler);
+    ASSERT_EQ(err, TIMER_ERROR_OK);
+    ASSERT_EQ(prescaler, TIMER16BIT_CLK_PRESCALER_1);
+
+    clock_freq = 8'000'000;
+    target_freq = 440;
+    err = timer_16_bit_compute_closest_prescaler(&clock_freq, &target_freq, TIMER_GENERIC_RESOLUTION_16_BIT, &prescaler);
+    ASSERT_EQ(err, TIMER_ERROR_OK);
+    ASSERT_EQ(prescaler, TIMER16BIT_CLK_PRESCALER_1);
+
+    clock_freq = 16'000'000;
+    target_freq = 1;
+    err = timer_16_bit_compute_closest_prescaler(&clock_freq, &target_freq, TIMER_GENERIC_RESOLUTION_16_BIT, &prescaler);
+    ASSERT_EQ(err, TIMER_ERROR_OK);
+    ASSERT_EQ(prescaler, TIMER16BIT_CLK_PRESCALER_256);
+}
+
+
 int main(int argc, char **argv)
 {
     ::testing::InitGoogleTest(&argc, argv);

@@ -757,11 +757,17 @@ static pwm_error_t configure_timer_16_bit_single(const uint8_t index, pwm_props_
     // Retrieve actual current timer resolution based on current waveform generation mode as per set in timer 16 bit registers
     timer_generic_resolution_t resolution = derive_16_bit_timer_resolution_from_waveform_selection(waveform);
 
+    if(waveform == TIMER16BIT_WG_PWM_FAST_9_bit_FULL_RANGE)
+    {
+        (void) waveform;
+        asm("NOP");
+    }
+
     // Compute closest prescaler first
     timerr = timer_16_bit_compute_closest_prescaler(clock_freq, &properties->frequency, resolution, &prescaler);
     if (TIMER_ERROR_OK != timerr)
     {
-        return PWM_ERROR_TIMER_ISSUE;
+        return PWM_ERROR_CONFIG;
     }
 
     timerr = timer_16_bit_set_prescaler(index, prescaler);

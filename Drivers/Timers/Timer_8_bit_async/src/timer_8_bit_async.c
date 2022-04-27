@@ -128,7 +128,8 @@ timer_error_t timer_8_bit_async_compute_closest_prescaler(const uint32_t * const
     {
         return TIMER_ERROR_CONFIG;
     }
-    *prescaler = parameters.output.prescaler;
+    *prescaler = timer_8_bit_async_prescaler_from_value(&parameters.output.prescaler);
+
     return TIMER_ERROR_OK;
 }
 

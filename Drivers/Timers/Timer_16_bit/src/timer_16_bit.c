@@ -132,7 +132,8 @@ timer_error_t timer_16_bit_compute_closest_prescaler(const uint32_t * const cloc
         return TIMER_ERROR_CONFIG;
     }
 
-    *prescaler = parameters.output.prescaler;
+    *prescaler = timer_16_bit_prescaler_from_value(&parameters.output.prescaler);
+
     return TIMER_ERROR_OK;
 }
 
