@@ -86,7 +86,7 @@ uint16_t timer_8_bit_prescaler_to_value(const timer_8_bit_prescaler_selection_t 
     return 0;
 }
 
-void timer_8_bit_compute_matching_parameters(const uint32_t * const clock_freq,
+timer_error_t timer_8_bit_compute_matching_parameters(const uint32_t * const clock_freq,
                                              const uint32_t * const target_freq,
                                              timer_8_bit_prescaler_selection_t * const prescaler,
                                              uint8_t * const ocr,
@@ -103,15 +103,20 @@ void timer_8_bit_compute_matching_parameters(const uint32_t * const clock_freq,
             .prescaler_lookup_array.size = TIMER_8_BIT_MAX_PRESCALER_COUNT,
         },
     };
-    timer_generic_compute_parameters(&parameters);
+    if(TIMER_ERROR_OK != timer_generic_compute_parameters(&parameters))
+    {
+        return TIMER_ERROR_CONFIG;
+    }
+
     *prescaler = timer_8_bit_prescaler_from_value(&parameters.output.prescaler);
     *ocr = (uint8_t) parameters.output.ocr;
     *accumulator = parameters.output.accumulator;
+    return TIMER_ERROR_OK;
 }
 
-void timer_8_bit_compute_closest_prescaler(const uint32_t * const clock_freq,
-                                           const uint32_t * const target_freq,
-                                           timer_8_bit_prescaler_selection_t * const prescaler)
+timer_error_t timer_8_bit_compute_closest_prescaler(const uint32_t * const clock_freq,
+                                                    const uint32_t * const target_freq,
+                                                    timer_8_bit_prescaler_selection_t * const prescaler)
 {
     timer_generic_parameters_t parameters =
     {
@@ -124,8 +129,12 @@ void timer_8_bit_compute_closest_prescaler(const uint32_t * const clock_freq,
             .prescaler_lookup_array.size = TIMER_8_BIT_MAX_PRESCALER_COUNT,
         },
     };
-    timer_generic_find_closest_prescaler(&parameters);
+    if(TIMER_ERROR_OK != timer_generic_find_closest_prescaler(&parameters))
+    {
+        return TIMER_ERROR_CONFIG;
+    }
     *prescaler = parameters.output.prescaler;
+    return TIMER_ERROR_OK;
 }
 
 static inline timer_error_t check_id(uint8_t id)

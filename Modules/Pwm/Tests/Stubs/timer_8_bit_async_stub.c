@@ -61,17 +61,18 @@ void timer_8_bit_async_stub_reset(void)
     memset(&configuration, 0, sizeof(timer_8_bit_async_stub_configuration_t));
 }
 
-void timer_8_bit_async_compute_matching_parameters( const uint32_t * const clock_freq,
-                                                    const uint32_t * const target_freq,
-                                                    timer_8_bit_async_prescaler_selection_t * const prescaler,
-                                                    uint8_t * const ocra,
-                                                    uint16_t * const accumulator)
+timer_error_t timer_8_bit_async_compute_matching_parameters( const uint32_t * const clock_freq,
+                                                             const uint32_t * const target_freq,
+                                                             timer_8_bit_async_prescaler_selection_t * const prescaler,
+                                                             uint8_t * const ocra,
+                                                             uint16_t * const accumulator)
 {
     (void) clock_freq;
     (void) target_freq;
     *prescaler = configuration.prescaler;
     *ocra = configuration.ocra;
     *accumulator = configuration.accumulator;
+    return TIMER_ERROR_OK;
 }
 
 const timer_generic_prescaler_pair_t timer_8_bit_async_prescaler_table[TIMER_8_BIT_ASYNC_MAX_PRESCALER_COUNT] =
@@ -85,10 +86,11 @@ const timer_generic_prescaler_pair_t timer_8_bit_async_prescaler_table[TIMER_8_B
     {.value = 1024, .type = (uint8_t) TIMER8BIT_ASYNC_CLK_PRESCALER_1024   },
 };
 
-void timer_8_bit_async_compute_closest_prescaler(const uint32_t * const clock_freq,
-                                                 const uint32_t * const target_freq,
-                                                 timer_8_bit_async_prescaler_selection_t * const prescaler)
+timer_error_t timer_8_bit_async_compute_closest_prescaler(const uint32_t * const clock_freq,
+                                                          const uint32_t * const target_freq,
+                                                          timer_8_bit_async_prescaler_selection_t * const prescaler)
 {
+    timer_error_t ret = TIMER_ERROR_OK;
     timer_generic_parameters_t parameters =
     {
         .input =
@@ -100,8 +102,9 @@ void timer_8_bit_async_compute_closest_prescaler(const uint32_t * const clock_fr
             .prescaler_lookup_array.size = TIMER_8_BIT_ASYNC_MAX_PRESCALER_COUNT,
         },
     };
-    timer_generic_find_closest_prescaler(&parameters);
+    ret = timer_generic_find_closest_prescaler(&parameters);
     *prescaler = parameters.output.prescaler;
+    return ret;
 }
 
 

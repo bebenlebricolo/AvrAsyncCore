@@ -70,17 +70,18 @@ void timer_8_bit_stub_get_driver_configuration(timer_8_bit_config_t * const conf
     *config = configuration.driver_config;
 }
 
-void timer_8_bit_compute_matching_parameters(const uint32_t * const clock_freq,
-                                             const uint32_t * const target_freq,
-                                             timer_8_bit_prescaler_selection_t * const prescaler,
-                                             uint8_t * const ocra,
-                                             uint16_t * const accumulator)
+timer_error_t timer_8_bit_compute_matching_parameters(const uint32_t * const clock_freq,
+                                                      const uint32_t * const target_freq,
+                                                      timer_8_bit_prescaler_selection_t * const prescaler,
+                                                      uint8_t * const ocra,
+                                                      uint16_t * const accumulator)
 {
     (void) clock_freq;
     (void) target_freq;
     *prescaler = configuration.prescaler;
     *ocra = configuration.ocra;
     *accumulator = configuration.accumulator;
+    return TIMER_ERROR_OK;
 }
 
 const timer_generic_prescaler_pair_t timer_8_bit_prescaler_table[TIMER_8_BIT_MAX_PRESCALER_COUNT] =

@@ -744,6 +744,7 @@ static pwm_error_t configure_timer_16_bit_single(const uint8_t index, pwm_props_
     timer_16_bit_prescaler_selection_t prescaler = TIMER16BIT_CLK_NO_CLOCK;
     timer_16_bit_waveform_generation_t waveform = TIMER16BIT_WG_NORMAL;
     pwm_hard_static_config_t * timer_config = &pwm_config.hard[index];
+    uint16_t prescaler_value = 1U;
 
     // We need to probe the waveform generation modes from Timer driver because it drives the way we configure a PWM afterwards
     // (Because timer8 bit has some limitations when it comes to having PWMs with full frequency and duty cycle control, a lot depends on the Waveform Generation)
@@ -757,12 +758,18 @@ static pwm_error_t configure_timer_16_bit_single(const uint8_t index, pwm_props_
     timer_generic_resolution_t resolution = derive_16_bit_timer_resolution_from_waveform_selection(waveform);
 
     // Compute closest prescaler first
-    timer_16_bit_compute_closest_prescaler(clock_freq, &properties->frequency, resolution, &prescaler);
+    timerr = timer_16_bit_compute_closest_prescaler(clock_freq, &properties->frequency, resolution, &prescaler);
+    if (TIMER_ERROR_OK != timerr)
+    {
+        return PWM_ERROR_TIMER_ISSUE;
+    }
+
     timerr = timer_16_bit_set_prescaler(index, prescaler);
     if (TIMER_ERROR_OK != timerr)
     {
         return PWM_ERROR_TIMER_ISSUE;
     }
+    prescaler_value = timer_16_bit_prescaler_to_value(prescaler);
 
 
     // Select the polarity globally, checking special cases later on
@@ -814,6 +821,9 @@ static pwm_error_t configure_timer_16_bit_single(const uint8_t index, pwm_props_
             {
                 timerr |= timer_16_bit_set_ocrb_register_value(timer_config->timer_index, &ocr_value);
             }
+
+            // Actual output frequency is affected by this configuration, because of timer's construction
+            properties->frequency = *clock_freq / (prescaler_value * (COUNTER_MAX_VALUE_8_BIT + 1));
             break;
 
         // TOP value is set to 511
@@ -829,6 +839,10 @@ static pwm_error_t configure_timer_16_bit_single(const uint8_t index, pwm_props_
             {
                 timerr |= timer_16_bit_set_ocrb_register_value(timer_config->timer_index, &ocr_value);
             }
+
+            // Actual output frequency is affected by this configuration, because of timer's construction
+            properties->frequency = *clock_freq / (prescaler_value * (COUNTER_MAX_VALUE_9_BIT + 1));
+
             break;
 
         // Top value is set to 1023
@@ -844,6 +858,9 @@ static pwm_error_t configure_timer_16_bit_single(const uint8_t index, pwm_props_
             {
                 timerr |= timer_16_bit_set_ocrb_register_value(timer_config->timer_index, &ocr_value);
             }
+
+            // Actual output frequency is affected by this configuration, because of timer's construction
+            properties->frequency = *clock_freq / (prescaler_value * (COUNTER_MAX_VALUE_10_BIT + 1));
             break;
 
         // TOP value is governed by ICR register
@@ -867,6 +884,7 @@ static pwm_error_t configure_timer_16_bit_single(const uint8_t index, pwm_props_
                 {
                     timerr |= timer_16_bit_set_ocrb_register_value(timer_config->timer_index, &ocr_value);
                 }
+                // Output frequency characteristics should match the input requested properties at this point
             }
             break;
 
@@ -892,7 +910,8 @@ static pwm_error_t configure_timer_16_bit_single(const uint8_t index, pwm_props_
                 // Frequency is governed by OCRA, duty cycle is 50% and frequency is halved because output pin is toggled
                 // So divide OCRA by 2 (multiplying resulting frequency) in order to still get a 50% duty cycle PWM with the right frequency
                 timerr |= timer_16_bit_set_compare_match_A(timer_config->timer_index, TIMER16BIT_CMOD_TOGGLE_OCnX);
-
+                properties->frequency = *clock_freq / (prescaler_value * (ocr_value + 1)*2);
+                properties->duty_cycle = 50U;   // output duty cycle is fixed
             }
             else
             {
@@ -904,6 +923,9 @@ static pwm_error_t configure_timer_16_bit_single(const uint8_t index, pwm_props_
                 timerr = timer_16_bit_set_ocra_register_value(timer_config->timer_index, &ocr_value);
                 timerr |= timer_16_bit_set_ocrb_register_value(timer_config->timer_index, &ocr_value);
                 timerr |= timer_16_bit_set_compare_match_B(timer_config->timer_index, TIMER16BIT_CMOD_TOGGLE_OCnX);
+
+                // In that case, both frequency and duty cycle are achieved through the use of this configuration.
+                // So output frequency characteristics should match the requested input pwm properties parameters
             }
             break;
 

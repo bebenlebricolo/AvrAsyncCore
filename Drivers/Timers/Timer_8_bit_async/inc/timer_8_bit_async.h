@@ -417,12 +417,15 @@ timer_error_t timer_8_bit_async_stop(uint8_t id);
  * @param[out] prescaler   : output prescaler parameter
  * @param[out] ocr         : output ocr value
  * @param[out] accumulator : output accumulator value ; used by the timebase module for instance to count events and extend timer's counter capabilities
+ * @return
+ *      TIMER_ERROR_OK     : operation succeeded
+ *      TIMER_ERROR_CONFIG : Something was wrong in the input configuration (probably unachievable frequency parameters)
  */
-void timer_8_bit_async_compute_matching_parameters(const uint32_t * const clock_freq,
-                                                   const uint32_t * const target_freq,
-                                                   timer_8_bit_async_prescaler_selection_t * const prescaler,
-                                                   uint8_t * const ocra,
-                                                   uint16_t * const accumulator);
+timer_error_t timer_8_bit_async_compute_matching_parameters(const uint32_t * const clock_freq,
+                                                            const uint32_t * const target_freq,
+                                                            timer_8_bit_async_prescaler_selection_t * const prescaler,
+                                                            uint8_t * const ocra,
+                                                            uint16_t * const accumulator);
 
 /**
  * @brief Computes timing parameters such as prescaler, ocr value and accumulator in order to satisfy the requested target frequency,
@@ -431,10 +434,13 @@ void timer_8_bit_async_compute_matching_parameters(const uint32_t * const clock_
  * @param[in] clock_freq     : current CPU main clock frequency
  * @param[in] target_freq  : desired output frequency of the timer (assuming ocr is the top value)
  * @param[out] prescaler   : output prescaler parameter
+ * @return
+ *      TIMER_ERROR_OK     : operation succeeded
+ *      TIMER_ERROR_CONFIG : Something was wrong in the input configuration (probably unachievable frequency parameters)
  */
-void timer_8_bit_async_compute_closest_prescaler(const uint32_t * const clock_freq,
-                                                 const uint32_t * const target_freq,
-                                                 timer_8_bit_async_prescaler_selection_t * const prescaler);
+timer_error_t timer_8_bit_async_compute_closest_prescaler(const uint32_t * const clock_freq,
+                                                          const uint32_t * const target_freq,
+                                                          timer_8_bit_async_prescaler_selection_t * const prescaler);
 
 #define TIMER_8_BIT_ASYNC_MAX_PRESCALER_COUNT (7U)
 
