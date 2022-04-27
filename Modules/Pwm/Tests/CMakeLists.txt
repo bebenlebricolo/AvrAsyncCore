@@ -8,12 +8,11 @@ if(WIN32)
     set(THREAD_LIB "")
 else()
     set(THREAD_LIB pthread)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weffc++")
 endif()
 
 ### timebase_module library ###
 add_library(pwm_module STATIC
-../src/pwm.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/pwm.c
 )
 target_include_directories(pwm_module PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
@@ -30,11 +29,11 @@ target_include_directories(pwm_module PUBLIC
 ########## Timebase module tests ##########
 
 add_executable(pwm_module_tests
-    pwm_tests.cpp
-    Stubs/timer_8_bit_async_stub.c
-    Stubs/timer_8_bit_stub.c
-    Stubs/timer_16_bit_stub.c
-    Stubs/config.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/pwm_tests.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Stubs/timer_8_bit_async_stub.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Stubs/timer_8_bit_stub.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Stubs/timer_16_bit_stub.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Stubs/config.c
 )
 
 target_include_directories(pwm_module_tests PUBLIC

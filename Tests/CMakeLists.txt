@@ -14,6 +14,7 @@ add_definitions(
 
 option(COVERAGE OFF)
 
+
 if(COVERAGE)
     set(COVERAGE_FLAGS "--coverage --ftest-coverage -fprofile-arcs")
 else()
