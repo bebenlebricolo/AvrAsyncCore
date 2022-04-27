@@ -49,7 +49,7 @@ static pwm_error_t pwm_init_single_hard(pwm_hard_static_config_t const * const c
  *      PWM_ERROR_CONFIG    : PWM configuration error, driver or dependencies were not configured correctly
  *      PWM_ERROR_TIMER_ISSUE : encountered issues when configuring underlying timer, probably a global configuration error
  */
-static pwm_error_t configure_timer_8_bit_single(const uint8_t index, pwm_props_t const * const properties, const uint32_t * clock_freq);
+static pwm_error_t configure_timer_8_bit_single(const uint8_t index, pwm_props_t * const properties, const uint32_t * clock_freq);
 
 /**
  * @brief Configures a single timer 8 bit asynchronous instance based on common parameters
@@ -61,7 +61,7 @@ static pwm_error_t configure_timer_8_bit_single(const uint8_t index, pwm_props_t
  *      PWM_ERROR_CONFIG    : PWM configuration error, driver or dependencies were not configured correctly
  *      PWM_ERROR_TIMER_ISSUE : encountered issues when configuring underlying timer, probably a global configuration error
  */
-static pwm_error_t configure_timer_8_bit_async_single(const uint8_t index, pwm_props_t const * const properties, const uint32_t * clock_freq);
+static pwm_error_t configure_timer_8_bit_async_single(const uint8_t index, pwm_props_t * const properties, const uint32_t * clock_freq);
 
 /**
  * @brief Configures a single timer 16 bit instance based on common parameters
@@ -73,7 +73,7 @@ static pwm_error_t configure_timer_8_bit_async_single(const uint8_t index, pwm_p
  *      PWM_ERROR_CONFIG    : PWM configuration error, driver or dependencies were not configured correctly
  *      PWM_ERROR_TIMER_ISSUE : encountered issues when configuring underlying timer, probably a global configuration error
  */
-static pwm_error_t configure_timer_16_bit_single(const uint8_t index, pwm_props_t const * const properties, const uint32_t * clock_freq);
+static pwm_error_t configure_timer_16_bit_single(const uint8_t index, pwm_props_t * const properties, const uint32_t * clock_freq);
 
 /**
  * @brief Verifies that pwm index fits within the range
@@ -272,7 +272,7 @@ pwm_error_t pwm_stop(const uint8_t index, const pwm_type_t type)
     return ret;
 }
 
-pwm_error_t pwm_config_single(const uint8_t index, const pwm_type_t type, pwm_props_t const * const properties, const uint32_t * clock_freq)
+pwm_error_t pwm_config_single(const uint8_t index, const pwm_type_t type, pwm_props_t * const properties, const uint32_t * clock_freq)
 {
     pwm_error_t ret = PWM_ERROR_OK;
     if (PWM_TYPE_HARDWARE == type)
@@ -311,7 +311,7 @@ pwm_error_t pwm_config_single(const uint8_t index, const pwm_type_t type, pwm_pr
 }
 
 
-static pwm_error_t configure_timer_8_bit_single(const uint8_t index, pwm_props_t const * const properties, const uint32_t * clock_freq)
+static pwm_error_t configure_timer_8_bit_single(const uint8_t index, pwm_props_t * const properties, const uint32_t * clock_freq)
 {
     timer_error_t timerr = TIMER_ERROR_OK;
     pwm_error_t ret = PWM_ERROR_OK;
@@ -373,6 +373,10 @@ static pwm_error_t configure_timer_8_bit_single(const uint8_t index, pwm_props_t
                 {
                     return PWM_ERROR_TIMER_ISSUE;
                 }
+
+                // Properties object needs to be updated with the actual frequency used by the timer
+                properties->frequency = (*clock_freq / (prescaler_value * (COUNTER_MAX_VALUE_8_BIT + 1)));
+
                 break;
             }
             // TOP value is controlled by OCRA value
@@ -399,6 +403,12 @@ static pwm_error_t configure_timer_8_bit_single(const uint8_t index, pwm_props_t
                 {
                     return PWM_ERROR_TIMER_ISSUE;
                 }
+
+                // Properties object needs to be updated with the actual frequency used by the timer
+                // Note that OCRA needs to be multiplied by 2 because of the toggling nature of the output pin ;
+                // So it behaves as if ocra was twice as large with a normal COMP mode switching
+                properties->frequency = (*clock_freq / (prescaler_value * (ocr_value + 1) * 2));
+                properties->duty_cycle = 50U;
                 break;
 
             // Misconfigured Timer, could not proceed further
@@ -432,22 +442,14 @@ static pwm_error_t configure_timer_8_bit_single(const uint8_t index, pwm_props_t
             case TIMER8BIT_WG_PWM_FAST_FULL_RANGE:
             case TIMER8BIT_WG_PWM_PHASE_CORRECT_FULL_RANGE:
             {
-                // OCRA value represents the duty_cycle value now
+                // OCRB value represents the duty_cycle value now
                 ocr_value = (properties->duty_cycle * COUNTER_MAX_VALUE_8_BIT) / 100U;
-                timerr = timer_8_bit_set_ocra_register_value(timer_config->timer_index, ocr_value);
+                timerr = timer_8_bit_set_ocrb_register_value(timer_config->timer_index, ocr_value);
                 if(TIMER_ERROR_OK != timerr)
                 {
                     return PWM_ERROR_TIMER_ISSUE;
                 }
-                break;
-
-                // Set timer ocrb value, to control duty_cycle
-                timerr = timer_8_bit_set_ocrb_register_value(index, ocr_value);
-                if (TIMER_ERROR_OK != timerr)
-                {
-                    return PWM_ERROR_TIMER_ISSUE;
-                }
-
+                properties->frequency = (*clock_freq / (prescaler_value * (COUNTER_MAX_VALUE_8_BIT + 1)));
                 break;
             }
 
@@ -466,6 +468,7 @@ static pwm_error_t configure_timer_8_bit_single(const uint8_t index, pwm_props_t
                 {
                     return PWM_ERROR_TIMER_ISSUE;
                 }
+                properties->frequency = (*clock_freq / (prescaler_value * (ocr_value + 1)));
 
                 // Compute exact duty cycle value for OCRB (reuse the ocr_value variable)
                 ocr_value = (properties->duty_cycle * ocr_value) / 100U;
@@ -488,7 +491,7 @@ static pwm_error_t configure_timer_8_bit_single(const uint8_t index, pwm_props_t
 }
 
 // Timer 8 bit async share the same infrastructure as the 8 bit one
-static pwm_error_t configure_timer_8_bit_async_single(const uint8_t index, pwm_props_t const * const properties, const uint32_t * clock_freq)
+static pwm_error_t configure_timer_8_bit_async_single(const uint8_t index, pwm_props_t * const properties, const uint32_t * clock_freq)
 {
     timer_error_t timerr = TIMER_ERROR_OK;
     pwm_error_t ret = PWM_ERROR_OK;
@@ -609,16 +612,8 @@ static pwm_error_t configure_timer_8_bit_async_single(const uint8_t index, pwm_p
             case TIMER8BIT_ASYNC_WG_PWM_FAST_FULL_RANGE:
             case TIMER8BIT_ASYNC_WG_PWM_PHASE_CORRECT_FULL_RANGE:
             {
-                // OCRA value represents the duty_cycle value now
+                // OCRB value represents the duty_cycle value now
                 ocr_value = (properties->duty_cycle * COUNTER_MAX_VALUE_8_BIT) / 100U;
-                timerr = timer_8_bit_async_set_ocra_register_value(timer_config->timer_index, ocr_value);
-                if(TIMER_ERROR_OK != timerr)
-                {
-                    return PWM_ERROR_TIMER_ISSUE;
-                }
-                break;
-
-                // Set timer ocrb value, to control duty_cycle
                 timerr = timer_8_bit_async_set_ocrb_register_value(index, ocr_value);
                 if (TIMER_ERROR_OK != timerr)
                 {
@@ -726,7 +721,7 @@ static timer_generic_resolution_t derive_16_bit_timer_resolution_from_waveform_s
  *      PWM_ERROR_TIMER_ISSUE : encountered an issue with the underlying timer's capabilities and / or configuration
  *      PWM_ERROR_CONFIG      : something is off in the base configuration of either PWM driver or underlying timer 16 bit driver (waveform generation can be off for instance)
  */
-static pwm_error_t configure_timer_16_bit_single(const uint8_t index, pwm_props_t const * const properties, const uint32_t * clock_freq)
+static pwm_error_t configure_timer_16_bit_single(const uint8_t index, pwm_props_t * const properties, const uint32_t * clock_freq)
 {
     timer_error_t timerr = TIMER_ERROR_OK;
     pwm_error_t ret = PWM_ERROR_OK;
@@ -798,6 +793,14 @@ static pwm_error_t configure_timer_16_bit_single(const uint8_t index, pwm_props_
         case TIMER16BIT_WG_PWM_PHASE_CORRECT_8_bit_FULL_RANGE:
             // OCR value represents duty_cycle
             ocr_value = (properties->duty_cycle * COUNTER_MAX_VALUE_8_BIT) / 100U;
+            if( PWM_HARD_TIMER_UNIT_A == timer_config->unit)
+            {
+                timerr |= timer_16_bit_set_ocra_register_value(timer_config->timer_index, &ocr_value);
+            }
+            else
+            {
+                timerr |= timer_16_bit_set_ocrb_register_value(timer_config->timer_index, &ocr_value);
+            }
             break;
 
         // TOP value is set to 511
@@ -805,6 +808,14 @@ static pwm_error_t configure_timer_16_bit_single(const uint8_t index, pwm_props_
         case TIMER16BIT_WG_PWM_PHASE_CORRECT_9_bit_FULL_RANGE:
             // OCR value represents duty_cycle
             ocr_value = (properties->duty_cycle * COUNTER_MAX_VALUE_9_BIT) / 100U;
+            if( PWM_HARD_TIMER_UNIT_A == timer_config->unit)
+            {
+                timerr |= timer_16_bit_set_ocra_register_value(timer_config->timer_index, &ocr_value);
+            }
+            else
+            {
+                timerr |= timer_16_bit_set_ocrb_register_value(timer_config->timer_index, &ocr_value);
+            }
             break;
 
         // Top value is set to 1023
@@ -812,6 +823,14 @@ static pwm_error_t configure_timer_16_bit_single(const uint8_t index, pwm_props_
         case TIMER16BIT_WG_PWM_PHASE_CORRECT_10_bit_FULL_RANGE:
             // OCR value represents duty_cycle
             ocr_value = (properties->duty_cycle * COUNTER_MAX_VALUE_10_BIT) / 100U;
+            if( PWM_HARD_TIMER_UNIT_A == timer_config->unit)
+            {
+                timerr |= timer_16_bit_set_ocra_register_value(timer_config->timer_index, &ocr_value);
+            }
+            else
+            {
+                timerr |= timer_16_bit_set_ocrb_register_value(timer_config->timer_index, &ocr_value);
+            }
             break;
 
         // TOP value is governed by ICR register

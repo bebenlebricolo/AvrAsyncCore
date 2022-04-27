@@ -65,13 +65,20 @@ io_state_t io_read(const uint8_t index)
 void io_write(const uint8_t index, const io_state_t state)
 {
     io_t * io = &io_pins_lut[index];
-    if ( IO_STATE_HIGH == state )
+    switch (state)
     {
+    case IO_STATE_HIGH:
         *port_lut[io->port]->port_reg |= (1 << io->pin);
-    }
-    else
-    {
+        break;
+
+    case IO_STATE_LOW :
         *port_lut[io->port]->port_reg &= ~(1 << io->pin);
+        break;
+
+    // Undefined state is used by other drivers to indicate "do not interact with this pin"
+    case IO_STATE_UNDEFINED :
+    default:
+        break;
     }
 }
 

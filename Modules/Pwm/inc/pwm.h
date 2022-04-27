@@ -84,8 +84,9 @@ typedef struct
 */
 typedef struct
 {
-    uint8_t io_index;           /**< IO index from the Io lookup table @see static io configuration                                                   */
-    uint8_t timebase_index;     /**< Timebase index used to look at the watch                                                                         */
+    uint8_t     io_index;           /**< IO index from the Io lookup table @see static io configuration                                                          */
+    uint8_t     timebase_index;     /**< Timebase index used to look at the watch                                                                                */
+    io_state_t  safe_state;         /**< Safe io state used by the driver when initialising and when stopped to configure the targeted pin to a known safe state */
 } pwm_soft_static_config_t;
 
 /**
@@ -239,16 +240,20 @@ pwm_error_t pwm_stop_all(void);
  * This driver checks the actual values of TCCRxx, looking for WG modes and COMxA/B modes.
  * Those values will then be taken into account in order to configure the timer accordingly, but this function will not configure WG and COM modes for
  * you, this is the responsibility of the Timer initialisation steps.
- * @param   pwm_instance_index  : pwm instance index as per given in config.c file
- * @param   frequency           : targeted PWM frequency
- * @param   clock_freq            : current CPU frequency (note that if CPU frequency changes, output PWM will be off as well)
+ *
+ * @note This function might not, under some circumstances, achieve the desired output frequency or desired duty cycle, because of underlying hardware timers limitations.
+ * The properties parameters is used as an output and will reflect the 'real' achieved PWM characteristics, as per configured in Timer's hardware registers.
+ * @param[in]       index        : pwm instance index as per given in config.c file
+ * @param[in]       type         : kind of PWM driver used (either software based or hardware based)
+ * @param[in]       clock_freq   : current CPU frequency (note that if CPU frequency changes, output PWM will be off as well)
+ * @param[in,out]   properties   : [in] : gives the desired output PWM characteristics, [out] : carries the actual frequency and duty cycle as per configured by this function
  * @return pwm_error_t:
  *      PWM_ERR_OK              : operation succeeded
  *      PWM_ERR_TIMEBASE_ISSUE  : operation did not succeed because of timebase module errors
- *      PWM_ERROR_TIMER_ISSUE     : operation did not succeed because of timer drivers errors
+ *      PWM_ERROR_TIMER_ISSUE   : operation did not succeed because of timer drivers errors
  *      PWM_ERROR_CONFIG        : PWM configuration error, driver or dependencies were not configured correctly
 */
-pwm_error_t pwm_config_single(const uint8_t index, const pwm_type_t type, pwm_props_t const * const properties, const uint32_t * clock_freq);
+pwm_error_t pwm_config_single(const uint8_t index, const pwm_type_t type, pwm_props_t * const properties, const uint32_t * clock_freq);
 
 /**
  * @brief Configures a particular timer to output complementary PWM with dead time generation.

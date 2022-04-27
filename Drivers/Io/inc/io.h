@@ -33,8 +33,14 @@ typedef enum
 */
 typedef enum
 {
-    IO_STATE_LOW = 0U,
-    IO_STATE_HIGH = 1U
+    IO_STATE_LOW =       0U,
+    IO_STATE_HIGH =      1U,
+    IO_STATE_UNDEFINED = 2U, /**< Undefined state is used by client code (drivers, modules, application) to tell IO driver to leave this pin untouched */
+                              //  This is useful when client code provides the ability to set a given pin to a predefined state when starting operation.
+                              //  For instance, the software PWM driver may initialise a given IO pin to a predefined state when PWM is not running
+                              //  to prevent hardware/electrical issues such as overheating, etc.
+                              //  In such cases, the "safe" state for a pin can be specified either by LOW or HIGH state, and sometimes we can use UNDEFINED
+                              //  state to indicate to the client code not to interact with the pin and leave it in its current state
 } io_state_t;
 
 /**
