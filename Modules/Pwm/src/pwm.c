@@ -914,10 +914,11 @@ static pwm_error_t configure_timer_16_bit_single(const uint8_t index, pwm_props_
                 // OCRB fine tunes the duty_cycle
 
                 // Ocr value will become the OCRB value, using OCRA as the limit counter value (TOP)
-                ocr_value = (properties->duty_cycle * ocr_value) / 100U;
+                ocr_value = (*clock_freq /(prescaler_value * properties->frequency) - 1);
                 timerr = timer_16_bit_set_ocra_register_value(timer_config->timer_index, &ocr_value);
+
+                ocr_value = (properties->duty_cycle * ocr_value) / 100U;
                 timerr |= timer_16_bit_set_ocrb_register_value(timer_config->timer_index, &ocr_value);
-                timerr |= timer_16_bit_set_compare_match_B(timer_config->timer_index, TIMER16BIT_CMOD_TOGGLE_OCnX);
 
                 // In that case, both frequency and duty cycle are achieved through the use of this configuration.
                 // So output frequency characteristics should match the requested input pwm properties parameters
