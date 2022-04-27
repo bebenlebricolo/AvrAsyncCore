@@ -943,6 +943,13 @@ static pwm_error_t configure_timer_16_bit_single(const uint8_t index, pwm_props_
     return ret;
 }
 
+pwm_error_t pwm_hard_config_complementary(pwm_hard_compl_config_t const * const config, const uint32_t * clock_freq )
+{
+    (void) clock_freq;
+    (void) config;
+    return PWM_ERROR_NOT_IMPLEMENTED;
+}
+
 
 static inline bool index_valid(const uint8_t index, const pwm_type_t type)
 {
