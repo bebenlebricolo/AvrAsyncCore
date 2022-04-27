@@ -256,6 +256,19 @@ pwm_error_t pwm_stop_all(void);
 pwm_error_t pwm_config_single(const uint8_t index, const pwm_type_t type, pwm_props_t * const properties, const uint32_t * clock_freq);
 
 /**
+ * @brief probes actual configuration of a single PWM instance.
+ * This function can be used to determine actual pwm frequency and duty cycle, accounting underlying hardware/software limitations.
+ * Its functionality is already covered by the @see pwm_config_single function, which returns the actual current properties of a targeted PWM instance,
+ * but this one is read-only and does not write into Timer's registers.
+ *
+ * @param[in]  index
+ * @param[in]  type
+ * @param[out] properties
+ * @return pwm_error_t
+ */
+pwm_error_t pwm_get_actual_props(const uint8_t index, const pwm_type_t type, pwm_props_t * const properties, const uint32_t * clock_freq);
+
+/**
  * @brief Configures a particular timer to output complementary PWM with dead time generation.
  * It uses the Phase correct and phase and frequency correct modes in order to achieve proper dead time generation
  * and symmetrical PWM output signals.

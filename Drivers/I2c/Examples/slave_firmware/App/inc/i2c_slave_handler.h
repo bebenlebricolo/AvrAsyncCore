@@ -8,7 +8,7 @@
  * When a read operation (master reads from this slave), current_byte is considered as an output.
  * When a write operation (master writes to this slave), current_byte is considered as an input.
  * The request parameter informs about the nature of the current i2c transaction (read or write requests)
- * @param[in/out]   current_byte : interface byte used by the I2C driver
+ * @param[in,out]   current_byte : interface byte used by the I2C driver
  * @param[in]       request      : nature of the I2C transaction currently taking place
  * @return I2C_SLAVE_HANDLER_ERROR_OK or any other error from the i2c_slave_handler_error_t enum in case of failure.
 */

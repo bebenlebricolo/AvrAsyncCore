@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -78,7 +78,7 @@ void i2c_fake_slave_application_init(void);
 
 /**
  * @brief handles the first byte of a read/write operation when configured as a slave
- * @param[in/out]   byte    : gives the current byte on which we are working
+ * @param[in,out]   byte    : gives the current byte on which we are working
  * @param[in]       request : gives the current I2C operation from master's point of view
  *                            => when master reads from slave, request shall be set to I2C_REQUEST_READ
 */
