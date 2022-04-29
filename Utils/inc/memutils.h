@@ -8,7 +8,7 @@
 /**
  * @brief provides a volatile-ready memset kind-of interface
  * Sets all blocks of targeted memory to the given value, when memory is marked as volatile
- * @param[in/out]   ptr     :   memory block to be modified (volatile)
+ * @param[in,out]   ptr     :   memory block to be modified (volatile)
  * @param[in]       value   :   sets
  * @param[in]       size    :   sizeof the block in bytes
 */

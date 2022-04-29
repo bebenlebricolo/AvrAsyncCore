@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -41,7 +41,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "timer_8_bit_async.h"
 
 #ifndef TIMEBASE_MAX_MODULES
-    #error "TIMEBASE_MAX_MODULES define is missing, please set the maximum number of available timebase modules in your config.h"
+    #warning "TIMEBASE_MAX_MODULES define is missing, please set the maximum number of available timebase modules in your config.h"
+    #define TIMEBASE_MAX_MODULES 1U
 #endif
 
 timebase_internal_config_t timebase_internal_config[TIMEBASE_MAX_MODULES] = {0};
@@ -61,15 +62,17 @@ static void reset_internal_config(const uint8_t id)
     timebase_internal_config[id].accumulator.programmed = 0;
     timebase_internal_config[id].accumulator.running = 0;
     timebase_internal_config[id].tick = 0;
-    timebase_internal_config[id].timer = TIMEBASE_TIMER_UNDEFINED;
+    timebase_internal_config[id].arch = TIMER_ARCH_UNDEFINED;
     timebase_internal_config[id].timer_id = 0;
     timebase_internal_config[id].initialised = false;
 }
 
-static inline timebase_error_t setup_8_bit_timer(const uint8_t timebase_id, uint32_t const * const cpu_freq, uint32_t const * const target_freq)
+static inline timebase_error_t setup_8_bit_timer(const uint8_t timebase_id, uint32_t const * const clock_freq, uint32_t const * const target_freq)
 {
     bool initialised = false;
     timer_error_t err = timer_8_bit_is_initialised(timebase_internal_config[timebase_id].timer_id, &initialised);
+    uint8_t timer_id = timebase_internal_config[timebase_id].timer_id;
+
     if (TIMER_ERROR_OK != err)
     {
         return TIMEBASE_ERROR_TIMER_ERROR;
@@ -83,20 +86,13 @@ static inline timebase_error_t setup_8_bit_timer(const uint8_t timebase_id, uint
     uint8_t ocra = 0;
     timebase_internal_config[timebase_id].accumulator.programmed =  0;
     timer_8_bit_prescaler_selection_t prescaler;
-    timer_8_bit_compute_matching_parameters(cpu_freq,
+    timer_8_bit_compute_matching_parameters(clock_freq,
                                             target_freq,
                                             &prescaler,
                                             &ocra,
                                             &timebase_internal_config[timebase_id].accumulator.programmed);
 
-    timer_error_t ret = timer_8_bit_stop(timebase_internal_config[timebase_id].timer_id);
-    timer_8_bit_handle_t handle = {0};
-    ret = timer_8_bit_get_handle(timebase_internal_config[timebase_id].timer_id, &handle);
-
-    if (TIMER_ERROR_OK != ret)
-    {
-        return TIMEBASE_ERROR_TIMER_ERROR;
-    }
+    timer_error_t ret = timer_8_bit_stop(timer_id);
 
     timer_8_bit_config_t config = {0};
     ret = timer_8_bit_get_default_config(&config);
@@ -106,9 +102,8 @@ static inline timebase_error_t setup_8_bit_timer(const uint8_t timebase_id, uint
     }
 
     // Use old handle
-    config.handle = handle;
-    config.timing_config.comp_match_a = TIMER8BIT_CMOD_CLEAR_OCnX;
-    config.timing_config.comp_match_b = TIMER8BIT_CMOD_NORMAL;
+    config.timing_config.comp_mode_a = TIMER8BIT_CMOD_CLEAR_OCnX;
+    config.timing_config.comp_mode_b = TIMER8BIT_CMOD_NORMAL;
     config.timing_config.ocra_val = ocra;
     config.timing_config.prescaler = prescaler;
     config.interrupt_config.it_comp_match_a = true;
@@ -122,10 +117,11 @@ static inline timebase_error_t setup_8_bit_timer(const uint8_t timebase_id, uint
     return TIMEBASE_ERROR_OK;
 }
 
-static inline timebase_error_t setup_8_bit_async_timer(const uint8_t timebase_id, uint32_t const * const cpu_freq, uint32_t const * const target_freq)
+static inline timebase_error_t setup_8_bit_async_timer(const uint8_t timebase_id, uint32_t const * const clock_freq, uint32_t const * const target_freq)
 {
     bool initialised = false;
     timer_error_t err = timer_8_bit_async_is_initialised(timebase_internal_config[timebase_id].timer_id, &initialised);
+    uint8_t timer_id = timebase_internal_config[timebase_id].timer_id;
     if (TIMER_ERROR_OK != err)
     {
         return TIMEBASE_ERROR_TIMER_ERROR;
@@ -139,21 +135,13 @@ static inline timebase_error_t setup_8_bit_async_timer(const uint8_t timebase_id
     uint8_t ocra = 0;
     timebase_internal_config[timebase_id].accumulator.programmed =  0;
     timer_8_bit_async_prescaler_selection_t prescaler;
-    timer_8_bit_async_compute_matching_parameters(cpu_freq,
+    timer_8_bit_async_compute_matching_parameters(clock_freq,
                                                   target_freq,
                                                   &prescaler,
                                                   &ocra,
                                                   &timebase_internal_config[timebase_id].accumulator.programmed);
 
-    timer_error_t ret = timer_8_bit_async_stop(timebase_internal_config[timebase_id].timer_id);
-    timer_8_bit_async_handle_t handle = {0};
-    ret = timer_8_bit_async_get_handle(timebase_internal_config[timebase_id].timer_id, &handle);
-
-    if (TIMER_ERROR_OK != ret)
-    {
-        return TIMEBASE_ERROR_TIMER_ERROR;
-    }
-
+    timer_error_t ret = timer_8_bit_async_stop(timer_id);
     timer_8_bit_async_config_t config = {0};
     ret = timer_8_bit_async_get_default_config(&config);
     if (TIMER_ERROR_OK != ret)
@@ -162,7 +150,6 @@ static inline timebase_error_t setup_8_bit_async_timer(const uint8_t timebase_id
     }
 
     // Use old handle
-    config.handle = handle;
     config.timing_config.comp_match_a = TIMER8BIT_ASYNC_CMOD_CLEAR_OCnX;
     config.timing_config.comp_match_b = TIMER8BIT_ASYNC_CMOD_NORMAL;
     config.timing_config.ocra_val = ocra;
@@ -178,7 +165,7 @@ static inline timebase_error_t setup_8_bit_async_timer(const uint8_t timebase_id
     return TIMEBASE_ERROR_OK;
 }
 
-static inline timebase_error_t setup_16_bit_timer(const uint8_t timebase_id, uint32_t const * const cpu_freq, uint32_t const * const target_freq)
+static inline timebase_error_t setup_16_bit_timer(const uint8_t timebase_id, uint32_t const * const clock_freq, uint32_t const * const target_freq)
 {
     bool initialised = false;
     timer_error_t err = timer_16_bit_is_initialised(timebase_internal_config[timebase_id].timer_id, &initialised);
@@ -195,15 +182,14 @@ static inline timebase_error_t setup_16_bit_timer(const uint8_t timebase_id, uin
     uint16_t ocra = 0;
     timebase_internal_config[timebase_id].accumulator.programmed =  0;
     timer_16_bit_prescaler_selection_t prescaler;
-    timer_16_bit_compute_matching_parameters(cpu_freq,
+    timer_16_bit_compute_matching_parameters(clock_freq,
                                             target_freq,
+                                            TIMER_GENERIC_RESOLUTION_16_BIT,
                                             &prescaler,
                                             &ocra,
                                             &timebase_internal_config[timebase_id].accumulator.programmed);
 
     timer_error_t ret = timer_16_bit_stop(timebase_internal_config[timebase_id].timer_id);
-    timer_16_bit_handle_t handle = {0};
-    ret = timer_16_bit_get_handle(timebase_internal_config[timebase_id].timer_id, &handle);
 
     if (TIMER_ERROR_OK != ret)
     {
@@ -218,7 +204,6 @@ static inline timebase_error_t setup_16_bit_timer(const uint8_t timebase_id, uin
     }
 
     // Use old handle
-    config.handle = handle;
     config.timing_config.comp_match_a = TIMER16BIT_CMOD_CLEAR_OCnX;
     config.timing_config.comp_match_b = TIMER16BIT_CMOD_NORMAL;
     config.timing_config.ocra_val = ocra;
@@ -234,10 +219,10 @@ static inline timebase_error_t setup_16_bit_timer(const uint8_t timebase_id, uin
     return TIMEBASE_ERROR_OK;
 }
 
-static inline timebase_error_t convert_timescale_to_frequency(const timebase_config_t * const config, uint32_t * const target_frequency)
+static inline timebase_error_t convert_timescale_to_frequency(const uint8_t id, uint32_t * const target_frequency)
 {
     /* Handle target frequency */
-    switch (config->timescale)
+    switch (timebase_static_config[id].timescale)
     {
         case TIMEBASE_TIMESCALE_MICROSECONDS:
             *target_frequency = 1000000UL;
@@ -249,7 +234,7 @@ static inline timebase_error_t convert_timescale_to_frequency(const timebase_con
             *target_frequency = 1UL;
             break;
         case TIMEBASE_TIMESCALE_CUSTOM:
-            *target_frequency = config->custom_target_freq;
+            *target_frequency = timebase_static_config[id].custom_target_freq;
             break;
         default:
             return TIMEBASE_ERROR_UNSUPPORTED_TIMESCALE;
@@ -257,16 +242,16 @@ static inline timebase_error_t convert_timescale_to_frequency(const timebase_con
     return TIMEBASE_ERROR_OK;
 }
 
-timebase_error_t timebase_compute_timer_parameters(timebase_config_t const * const config, uint16_t * const prescaler_val, uint16_t * const ocr_value, uint16_t * const accumulator)
+timebase_error_t timebase_compute_timer_parameters(const uint8_t id, uint16_t * const prescaler_val, uint16_t * const ocr_value, uint16_t * const accumulator)
 {
     timer_8_bit_prescaler_selection_t prescaler;
     uint32_t target_frequency = 0;
-    if (NULL == config || NULL == prescaler_val || NULL == ocr_value || NULL == accumulator)
+    if (NULL == prescaler_val || NULL == ocr_value || NULL == accumulator)
     {
         return TIMEBASE_ERROR_NULL_POINTER;
     }
 
-    timebase_error_t ret = convert_timescale_to_frequency(config, &target_frequency);
+    timebase_error_t ret = convert_timescale_to_frequency(id, &target_frequency);
     if (TIMEBASE_ERROR_OK != ret)
     {
         return ret;
@@ -274,10 +259,10 @@ timebase_error_t timebase_compute_timer_parameters(timebase_config_t const * con
     uint16_t ocra = 0;
 
     // Initialise each timer using the right parameters set
-    switch(config->timer.type)
+    switch(timebase_static_config[id].timer.type)
     {
-        case TIMEBASE_TIMER_8_BIT:
-            timer_8_bit_compute_matching_parameters(&config->cpu_freq,
+        case TIMER_ARCH_8_BIT:
+            timer_8_bit_compute_matching_parameters(&timebase_static_config[id].clock_freq,
                                                     &target_frequency,
                                                     &prescaler,
                                                     (uint8_t*) &ocra,
@@ -286,8 +271,8 @@ timebase_error_t timebase_compute_timer_parameters(timebase_config_t const * con
             *ocr_value = ocra;
             break;
 
-        case TIMEBASE_TIMER_8_BIT_ASYNC:
-            timer_8_bit_async_compute_matching_parameters(&config->cpu_freq,
+        case TIMER_ARCH_8_BIT_ASYNC:
+            timer_8_bit_async_compute_matching_parameters(&timebase_static_config[id].clock_freq,
                                                           &target_frequency,
                                                           (timer_8_bit_async_prescaler_selection_t *) &prescaler,
                                                           (uint8_t*) &ocra,
@@ -296,9 +281,10 @@ timebase_error_t timebase_compute_timer_parameters(timebase_config_t const * con
             *ocr_value = ocra;
             break;
 
-        case TIMEBASE_TIMER_16_BIT:
-            timer_16_bit_compute_matching_parameters(&config->cpu_freq,
+        case TIMER_ARCH_16_BIT:
+            timer_16_bit_compute_matching_parameters(&timebase_static_config[id].clock_freq,
                                                      &target_frequency,
+                                                     TIMER_GENERIC_RESOLUTION_16_BIT,
                                                      (timer_16_bit_prescaler_selection_t *)&prescaler,
                                                      &ocra,
                                                      accumulator);
@@ -313,49 +299,44 @@ timebase_error_t timebase_compute_timer_parameters(timebase_config_t const * con
 }
 
 
-timebase_error_t timebase_init(const uint8_t timebase_id, timebase_config_t const * const config)
+timebase_error_t timebase_init(const uint8_t id)
 {
     timebase_error_t ret = TIMEBASE_ERROR_OK;
-    if (false == is_index_valid(timebase_id))
+    if (false == is_index_valid(id))
     {
         return TIMEBASE_ERROR_INVALID_INDEX;
     }
 
-    if (NULL == config)
-    {
-        return TIMEBASE_ERROR_NULL_POINTER;
-    }
-
-    timebase_internal_config[timebase_id].timer_id = config->timer.index;
-    timebase_internal_config[timebase_id].timer = config->timer.type;
+    timebase_internal_config[id].timer_id = timebase_static_config[id].timer.index;
+    timebase_internal_config[id].arch = timebase_static_config[id].timer.type;
     uint32_t target_freq = 0;
 
-    ret = convert_timescale_to_frequency(config, &target_freq);
+    ret = convert_timescale_to_frequency(id, &target_freq);
     if (TIMEBASE_ERROR_OK != ret)
     {
         return ret;
     }
 
     // Initialise each timer using the right parameters set
-    switch(config->timer.type)
+    switch(timebase_static_config[id].timer.type)
     {
-        case TIMEBASE_TIMER_8_BIT:
-            ret = setup_8_bit_timer(timebase_id, &(config->cpu_freq), &target_freq);
+        case TIMER_ARCH_8_BIT:
+            ret = setup_8_bit_timer(id, &(timebase_static_config[id].clock_freq), &target_freq);
             break;
 
-        case TIMEBASE_TIMER_8_BIT_ASYNC:
-            ret = setup_8_bit_async_timer(timebase_id,  &(config->cpu_freq), &target_freq);
+        case TIMER_ARCH_8_BIT_ASYNC:
+            ret = setup_8_bit_async_timer(id,  &(timebase_static_config[id].clock_freq), &target_freq);
             break;
 
-        case TIMEBASE_TIMER_16_BIT:
-            ret = setup_16_bit_timer(timebase_id, &(config->cpu_freq), &target_freq);
+        case TIMER_ARCH_16_BIT:
+            ret = setup_16_bit_timer(id, &(timebase_static_config[id].clock_freq), &target_freq);
             break;
 
         default:
             return TIMEBASE_ERROR_UNSUPPORTED_TIMER_TYPE;
     }
 
-    timebase_internal_config[timebase_id].initialised = true;
+    timebase_internal_config[id].initialised = true;
     return ret;
 }
 
@@ -386,6 +367,56 @@ void timebase_interrupt_callback(const uint8_t timebase_id)
         timebase_internal_config[timebase_id].tick++;
     }
 }
+
+timebase_error_t timebase_compute_period_from_frequency(const uint8_t id, uint32_t const * const frequency, const timebase_frequency_t funit, uint16_t * const period)
+{
+    uint32_t calculated_period = 0;
+    uint16_t multiplicator = 1;
+    if(TIMEBASE_FREQUENCY_MILLI_HZ == funit)
+    {
+        // Note, having this kind of multiplication happening at runtime is not performant at all,
+        // However, even for small avr chips it does not seem too bad (gcc quickly calls for __udivmodsi4, __mulis3, etc..)
+        // And it happens only at configuration time, it won't impede runtime performances
+        multiplicator = 1000U;
+    }
+
+    switch(timebase_static_config[id].timescale)
+    {
+        // Timebase in seconds needs special handling because frequency parameter is in Hertz,
+        // So if we want to achieve lower frequencies than 1Hz, we need to use a different strategy
+        case TIMEBASE_TIMESCALE_SECONDS:
+            calculated_period = multiplicator * 1U / *frequency ;
+            break;
+
+        case TIMEBASE_TIMESCALE_MILLISECONDS:
+            calculated_period = multiplicator * 1000U / *frequency;
+            break;
+
+        case TIMEBASE_TIMESCALE_MICROSECONDS:
+            calculated_period = multiplicator * 1000000U / *frequency ;
+            break;
+
+        case TIMEBASE_TIMESCALE_CUSTOM:
+            calculated_period = multiplicator * timebase_static_config[id].custom_target_freq / *frequency;
+            break;
+
+        // Should never get there
+        case TIMEBASE_TIMESCALE_UNDEFINED:
+        default:
+            return TIMEBASE_ERROR_UNSUPPORTED_TIMESCALE;
+    }
+
+    // If we reach 0, it means we cannot achieve the required frequency
+    if(calculated_period <= 1)
+    {
+        return TIMEBASE_ERROR_FREQUENCY_TOO_HIGH;
+    }
+
+    *period = (uint16_t) calculated_period;
+
+    return TIMEBASE_ERROR_OK;
+}
+
 
 timebase_error_t timebase_deinit(const uint8_t id)
 {

@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -32,5 +32,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #define CONFIG_HEADER_STUB
 
 #define TIMEBASE_MAX_MODULES 3U
+#define TIMER_8_BIT_COUNT 1
+#define TIMER_8_BIT_ASYNC_COUNT 1
+#define TIMER_16_BIT_COUNT 1
 
 #endif /* CONFIG_HEADER_STUB */

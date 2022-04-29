@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -206,7 +206,7 @@ typedef enum
  * When a read operation (master reads from this slave), current_byte is considered as an output.
  * When a write operation (master writes to this slave), current_byte is considered as an input.
  * The request parameter informs about the nature of the current i2c transaction (read or write requests)
- * @param[in/out]   current_byte : interface byte used by the I2C driver
+ * @param[in,out]   current_byte : interface byte used by the I2C driver
  * @param[in]       request      : nature of the I2C transaction currently taking place
  *
  * Example given :

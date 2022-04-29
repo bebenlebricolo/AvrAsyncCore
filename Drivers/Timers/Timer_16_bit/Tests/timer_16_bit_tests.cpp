@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -46,8 +46,7 @@ protected:
     {
         timer_16_bit_registers_stub_erase();
         (void) timer_16_bit_get_default_config(&config);
-        timer_16_bit_registers_stub_init_handle(&config.handle);
-        (void) timer_16_bit_set_handle(DT_ID, &config.handle);
+        timer_16_bit_clear_init_states();
     }
     void TearDown() override
     {
@@ -60,97 +59,76 @@ TEST(timer_16_bit_driver_tests, guard_null_handle)
     timer_error_t ret = timer_16_bit_get_default_config(&config);
     ASSERT_EQ(TIMER_ERROR_OK, ret);
 
-    /* We should have a null handle at the moment */
-    ASSERT_TRUE(NULL == (void*) (config.handle.OCRA_H));
-    ASSERT_TRUE(NULL == (void*) (config.handle.OCRA_L));
-    ASSERT_TRUE(NULL == (void*) (config.handle.OCRB_H));
-    ASSERT_TRUE(NULL == (void*) (config.handle.OCRB_L));
-    ASSERT_TRUE(NULL == (void*) (config.handle.TCCRA));
-    ASSERT_TRUE(NULL == (void*) (config.handle.TCCRB));
-    ASSERT_TRUE(NULL == (void*) (config.handle.TCCRC));
-    ASSERT_TRUE(NULL == (void*) (config.handle.TCNT_H));
-    ASSERT_TRUE(NULL == (void*) (config.handle.TCNT_L));
-    ASSERT_TRUE(NULL == (void*) (config.handle.ICR_H));
-    ASSERT_TRUE(NULL == (void*) (config.handle.ICR_L));
-    ASSERT_TRUE(NULL == (void*) (config.handle.TIFR));
-    ASSERT_TRUE(NULL == (void*) (config.handle.TIMSK));
-
     ret = timer_16_bit_init(DT_ID, &config);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
     ret = timer_16_bit_reconfigure(DT_ID, &config);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
 
     /* Test compare match mode A get/set api */
     ret = timer_16_bit_set_compare_match_A(DT_ID, config.timing_config.comp_match_a);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
     ret = timer_16_bit_get_compare_match_A(DT_ID, &config.timing_config.comp_match_a);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
 
     /* Test compare match mode B get/set api */
     ret = timer_16_bit_set_compare_match_B(DT_ID, config.timing_config.comp_match_b);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
-    ret = timer_16_bit_get_compare_match_B(DT_ID, &config.timing_config.comp_match_b);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
-
-    /* Test handle setting function */
-    ret = timer_16_bit_set_handle(DT_ID, &config.handle);
     ASSERT_EQ(TIMER_ERROR_OK, ret);
-    ret = timer_16_bit_get_handle(DT_ID, &config.handle);
+    ret = timer_16_bit_get_compare_match_B(DT_ID, &config.timing_config.comp_match_b);
     ASSERT_EQ(TIMER_ERROR_OK, ret);
 
     /* Test interrupt config get/set api */
     ret = timer_16_bit_set_interrupt_config(DT_ID, &config.interrupt_config);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
     ret = timer_16_bit_get_interrupt_config(DT_ID, &config.interrupt_config);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
 
     /* Test OCRA get/set api */
     ret = timer_16_bit_set_ocra_register_value(DT_ID, &config.timing_config.ocra_val);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
     ret = timer_16_bit_get_ocra_register_value(DT_ID, &config.timing_config.ocra_val);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
 
     /* Test OCRB get/set api */
     ret = timer_16_bit_set_ocrb_register_value(DT_ID, &config.timing_config.ocrb_val);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
     ret = timer_16_bit_get_ocrb_register_value(DT_ID, &config.timing_config.ocrb_val);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
 
     /* Test counter get/set api */
     ret = timer_16_bit_set_counter_value(DT_ID, &config.timing_config.counter);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
     ret = timer_16_bit_get_counter_value(DT_ID, &config.timing_config.counter);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
 
     /* Test force compare flags get/set api */
     ret = timer_16_bit_set_force_compare_config(DT_ID, &config.force_compare);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
     ret = timer_16_bit_get_force_compare_config(DT_ID, &config.force_compare);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
 
     /* Test prescaler get/set api */
     ret = timer_16_bit_set_prescaler(DT_ID, config.timing_config.prescaler);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
     ret = timer_16_bit_get_prescaler(DT_ID, &config.timing_config.prescaler);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
 
     /* Test waveform generation get/set api */
     ret = timer_16_bit_set_waveform_generation(DT_ID, config.timing_config.waveform_mode);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
     ret = timer_16_bit_get_waveform_generation(DT_ID, &config.timing_config.waveform_mode);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
 
     /* Test input capture edge select get/set api */
     ret = timer_16_bit_set_input_compare_edge_select(DT_ID, config.input_capture.edge_select);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
     ret = timer_16_bit_get_input_compare_edge_select(DT_ID, &config.input_capture.edge_select);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
 
     /* Test input capture noise canceler get/set api */
     ret = timer_16_bit_set_input_compare_noise_canceler(DT_ID, config.input_capture.use_noise_canceler);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
     ret = timer_16_bit_get_input_compare_noise_canceler(DT_ID, &config.input_capture.use_noise_canceler);
-    ASSERT_EQ(TIMER_ERROR_NULL_HANDLE, ret);
+    ASSERT_EQ(TIMER_ERROR_OK, ret);
 }
 
 TEST(timer_16_bit_driver_tests, guard_null_pointer)
@@ -170,13 +148,6 @@ TEST(timer_16_bit_driver_tests, guard_null_pointer)
     ret = timer_16_bit_reconfigure(DT_ID, nullptr_config);
     ASSERT_EQ(TIMER_ERROR_NULL_POINTER, ret);
     ret = timer_16_bit_init(DT_ID, nullptr_config);
-    ASSERT_EQ(TIMER_ERROR_NULL_POINTER, ret);
-
-    timer_16_bit_handle_t * nullptr_handle = NULL;
-    /* Test handle setting function */
-    ret = timer_16_bit_set_handle(DT_ID, nullptr_handle);
-    ASSERT_EQ(TIMER_ERROR_NULL_POINTER, ret);
-    ret = timer_16_bit_get_handle(DT_ID, nullptr_handle);
     ASSERT_EQ(TIMER_ERROR_NULL_POINTER, ret);
 
     /* Test interrupt config get/set api */
@@ -243,12 +214,6 @@ TEST(timer_16_bit_driver_tests, guard_wrong_id)
     ret = timer_16_bit_get_compare_match_A(targeted_id, &config.timing_config.comp_match_a);
     ASSERT_EQ(TIMER_ERROR_UNKNOWN_TIMER, ret);
     ret = timer_16_bit_get_compare_match_B(targeted_id, &config.timing_config.comp_match_b);
-    ASSERT_EQ(TIMER_ERROR_UNKNOWN_TIMER, ret);
-
-    /* Test handle setting function */
-    ret = timer_16_bit_set_handle(targeted_id, &config.handle);
-    ASSERT_EQ(TIMER_ERROR_UNKNOWN_TIMER, ret);
-    ret = timer_16_bit_get_handle(targeted_id, &config.handle);
     ASSERT_EQ(TIMER_ERROR_UNKNOWN_TIMER, ret);
 
     /* Test interrupt config get/set api */
@@ -612,19 +577,19 @@ TEST_F(Timer16BitFixture, test_initialisation_deinitialisation)
 
 TEST(timer_16_bit_driver_tests, test_parameters_computation_prescaler)
 {
-    uint32_t cpu_freq = 16'000'000;
+    uint32_t clock_freq = 16'000'000;
     uint32_t target_freq = 1'000;
     uint16_t ocra = 0;
     uint16_t accumulator = 0;
-
+    timer_generic_resolution_t resolution = TIMER_GENERIC_RESOLUTION_16_BIT;
     timer_16_bit_prescaler_selection_t prescaler = TIMER16BIT_CLK_PRESCALER_1;
-    timer_16_bit_compute_matching_parameters(&cpu_freq, &target_freq, &prescaler, &ocra, &accumulator);
+    timer_16_bit_compute_matching_parameters(&clock_freq, &target_freq, resolution, &prescaler, &ocra, &accumulator);
     ASSERT_EQ(prescaler, TIMER16BIT_CLK_PRESCALER_1);
     ASSERT_EQ(ocra, 15999U);
     ASSERT_EQ(accumulator, 0U);
 
     target_freq = 12'000'000;
-    timer_16_bit_compute_matching_parameters(&cpu_freq, &target_freq, &prescaler, &ocra, &accumulator);
+    timer_16_bit_compute_matching_parameters(&clock_freq, &target_freq , resolution,  &prescaler, &ocra, &accumulator);
     // This timer could not achieve such a target frequency because even in its fastest configuration,
     // with a prescaler of 1 and ocra of 0, the timer will tick at 16 MHz.
     // As output frequency is dependent on ocra, an ocra of 1 divides input cpu frequency by 2, which gives 8 MHz.
@@ -634,25 +599,66 @@ TEST(timer_16_bit_driver_tests, test_parameters_computation_prescaler)
     ASSERT_EQ(accumulator, 0U);
 
     target_freq = 8'000'000;
-    timer_16_bit_compute_matching_parameters(&cpu_freq, &target_freq, &prescaler, &ocra, &accumulator);
+    timer_16_bit_compute_matching_parameters(&clock_freq, &target_freq,  resolution, &prescaler, &ocra, &accumulator);
     ASSERT_EQ(prescaler, TIMER16BIT_CLK_PRESCALER_1);
     ASSERT_EQ(ocra, 1U);
     ASSERT_EQ(accumulator, 0U);
 
-    cpu_freq = 8'000'000;
+    clock_freq = 8'000'000;
     target_freq = 3'000;
-    timer_16_bit_compute_matching_parameters(&cpu_freq, &target_freq, &prescaler, &ocra, &accumulator);
+    timer_16_bit_compute_matching_parameters(&clock_freq, &target_freq,  resolution, &prescaler, &ocra, &accumulator);
     ASSERT_EQ(prescaler, TIMER16BIT_CLK_PRESCALER_1);
     ASSERT_EQ(ocra, 2665U);
     ASSERT_EQ(accumulator, 0U);
 
-    cpu_freq = 16'000'000;
+    clock_freq = 16'000'000;
     target_freq = 1U;
-    timer_16_bit_compute_matching_parameters(&cpu_freq, &target_freq, &prescaler, &ocra, &accumulator);
+    timer_16_bit_compute_matching_parameters(&clock_freq, &target_freq,  resolution, &prescaler, &ocra, &accumulator);
     ASSERT_EQ(prescaler, TIMER16BIT_CLK_PRESCALER_256);
     ASSERT_EQ(ocra, 62499U);
     ASSERT_EQ(accumulator, 0U);
 }
+
+TEST(timer_16_bit_driver_tests, test_find_closest_prescaler_function)
+{
+    timer_error_t err = TIMER_ERROR_OK;
+    uint32_t clock_freq = 16'000'000;
+    uint32_t target_freq = 1'000'000;
+
+    timer_16_bit_prescaler_selection_t prescaler = TIMER16BIT_CLK_PRESCALER_1;
+    err = timer_16_bit_compute_closest_prescaler(&clock_freq, &target_freq, TIMER_GENERIC_RESOLUTION_16_BIT, &prescaler);
+    ASSERT_EQ(err, TIMER_ERROR_OK);
+    ASSERT_EQ(prescaler, TIMER16BIT_CLK_PRESCALER_1);
+
+    target_freq = 1'000;
+    err = timer_16_bit_compute_closest_prescaler(&clock_freq, &target_freq, TIMER_GENERIC_RESOLUTION_16_BIT, &prescaler);
+    ASSERT_EQ(err, TIMER_ERROR_OK);
+    ASSERT_EQ(prescaler, TIMER16BIT_CLK_PRESCALER_1);
+
+
+    target_freq = 3'000;
+    err = timer_16_bit_compute_closest_prescaler(&clock_freq, &target_freq, TIMER_GENERIC_RESOLUTION_16_BIT, &prescaler);
+    ASSERT_EQ(err, TIMER_ERROR_OK);
+    ASSERT_EQ(prescaler, TIMER16BIT_CLK_PRESCALER_1);
+
+    target_freq = 5'000;
+    err = timer_16_bit_compute_closest_prescaler(&clock_freq, &target_freq, TIMER_GENERIC_RESOLUTION_16_BIT, &prescaler);
+    ASSERT_EQ(err, TIMER_ERROR_OK);
+    ASSERT_EQ(prescaler, TIMER16BIT_CLK_PRESCALER_1);
+
+    clock_freq = 8'000'000;
+    target_freq = 440;
+    err = timer_16_bit_compute_closest_prescaler(&clock_freq, &target_freq, TIMER_GENERIC_RESOLUTION_16_BIT, &prescaler);
+    ASSERT_EQ(err, TIMER_ERROR_OK);
+    ASSERT_EQ(prescaler, TIMER16BIT_CLK_PRESCALER_1);
+
+    clock_freq = 16'000'000;
+    target_freq = 1;
+    err = timer_16_bit_compute_closest_prescaler(&clock_freq, &target_freq, TIMER_GENERIC_RESOLUTION_16_BIT, &prescaler);
+    ASSERT_EQ(err, TIMER_ERROR_OK);
+    ASSERT_EQ(prescaler, TIMER16BIT_CLK_PRESCALER_256);
+}
+
 
 int main(int argc, char **argv)
 {

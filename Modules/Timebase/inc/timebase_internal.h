@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -41,7 +41,7 @@ extern "C"
 
 typedef struct
 {
-    timebase_timer_t timer;
+    timer_arch_t arch;
     uint8_t timer_id;
     struct
     {

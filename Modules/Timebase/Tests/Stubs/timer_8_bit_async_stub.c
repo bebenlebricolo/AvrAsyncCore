@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -63,17 +63,18 @@ void timer_8_bit_async_stub_reset(void)
     memset(&configuration, 0, sizeof(configuration_t));
 }
 
-void timer_8_bit_async_compute_matching_parameters( const uint32_t * const cpu_freq,
-                                                    const uint32_t * const target_freq,
-                                                    timer_8_bit_async_prescaler_selection_t * const prescaler,
-                                                    uint8_t * const ocra,
-                                                    uint16_t * const accumulator)
+timer_error_t timer_8_bit_async_compute_matching_parameters( const uint32_t * const clock_freq,
+                                                             const uint32_t * const target_freq,
+                                                             timer_8_bit_async_prescaler_selection_t * const prescaler,
+                                                             uint8_t * const ocra,
+                                                             uint16_t * const accumulator)
 {
-    (void) cpu_freq;
+    (void) clock_freq;
     (void) target_freq;
     *prescaler = configuration.prescaler;
     *ocra = configuration.ocra;
     *accumulator = configuration.accumulator;
+    return TIMER_ERROR_OK;
 }
 
 const timer_generic_prescaler_pair_t timer_8_bit_async_prescaler_table[TIMER_8_BIT_ASYNC_MAX_PRESCALER_COUNT] =
@@ -141,15 +142,6 @@ timer_error_t timer_8_bit_async_get_default_config(timer_8_bit_async_config_t * 
     config->force_compare.force_comp_match_a = false;
     config->force_compare.force_comp_match_b = false;
 
-    /* Architecture and device dependent, must be set at configuration time */
-    config->handle.OCRA = NULL;
-    config->handle.OCRB = NULL;
-    config->handle.TCCRA = NULL;
-    config->handle.TCCRB = NULL;
-    config->handle.TCNT = NULL;
-    config->handle.TIFR = NULL;
-    config->handle.TIMSK = NULL;
-    config->handle.ASSR_REG = NULL;
     return ret;
 }
 

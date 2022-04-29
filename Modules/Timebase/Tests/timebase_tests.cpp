@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -50,17 +50,16 @@ public:
         timer_8_bit_async_stub_reset();
         timer_16_bit_stub_reset();
 
-        config.cpu_freq = 16'000'000;
-        config.timescale = TIMEBASE_TIMESCALE_MILLISECONDS;
-        config.timer.type = TIMEBASE_TIMER_16_BIT;
-        config.timer.index = 0U;
+        timebase_static_config[0].clock_freq = 16'000'000;
+        timebase_static_config[0].timescale = TIMEBASE_TIMESCALE_MILLISECONDS;
+        timebase_static_config[0].timer.type = TIMER_ARCH_16_BIT;
+        timebase_static_config[0].timer.index = 0U;
     }
 
     void TearDown(void) override
     {
 
     }
-    timebase_config_t config;
 };
 
 class TimebaseModule8BitInitialised : public TimebaseModuleBasicConfig
@@ -71,8 +70,8 @@ public:
         TimebaseModuleBasicConfig::SetUp();
         timer_8_bit_stub_set_initialised(true);
 
-        config.timer.type = TIMEBASE_TIMER_8_BIT;
-        config.timer.index = 0U;
+        timebase_static_config[0].timer.type = TIMER_ARCH_8_BIT;
+        timebase_static_config[0].timer.index = 0U;
 
         timer_8_bit_prescaler_selection_t prescaler = TIMER8BIT_CLK_PRESCALER_64;
         uint32_t accumulator = 5U;
@@ -80,18 +79,17 @@ public:
 
         timer_8_bit_stub_set_next_parameters(prescaler, ocra, accumulator);
 
-        timebase_error_t err = timebase_init(0U, &config);
+        timebase_error_t err = timebase_init(0U);
         ASSERT_EQ(TIMEBASE_ERROR_OK, err);
     }
 };
 
 TEST(timebase_module_tests, test_compute_timer_parameters)
 {
-    timebase_config_t config;
-    config.cpu_freq = 16'000'000;
-    config.timescale = TIMEBASE_TIMESCALE_MILLISECONDS;
-    config.timer.type = TIMEBASE_TIMER_16_BIT;
-    config.timer.index = 0U;
+    timebase_static_config[0].clock_freq = 16'000'000;
+    timebase_static_config[0].timescale = TIMEBASE_TIMESCALE_MILLISECONDS;
+    timebase_static_config[0].timer.type = TIMER_ARCH_16_BIT;
+    timebase_static_config[0].timer.index = 0U;
 
     uint16_t prescaler = 0;
     uint16_t ocr_value = 0;
@@ -99,25 +97,25 @@ TEST(timebase_module_tests, test_compute_timer_parameters)
 
     timer_16_bit_stub_set_next_parameters(TIMER16BIT_CLK_PRESCALER_1, 15999U, 0U);
 
-    timebase_error_t err = timebase_compute_timer_parameters(&config, &prescaler, &ocr_value, &accumulator);
+    timebase_error_t err = timebase_compute_timer_parameters(0U, &prescaler, &ocr_value, &accumulator);
     ASSERT_EQ(TIMEBASE_ERROR_OK, err);
     ASSERT_EQ(0U, accumulator);
     ASSERT_EQ(prescaler, 1U);
     ASSERT_EQ(ocr_value, 15999U);
 
-    config.timer.type = TIMEBASE_TIMER_8_BIT;
-    config.timer.index = 0U;
+    timebase_static_config[0].timer.type = TIMER_ARCH_8_BIT;
+    timebase_static_config[0].timer.index = 0U;
     timer_8_bit_stub_set_next_parameters(TIMER8BIT_CLK_PRESCALER_64, 250, 3U);
-    err = timebase_compute_timer_parameters(&config, &prescaler, &ocr_value, &accumulator);
+    err = timebase_compute_timer_parameters(0U, &prescaler, &ocr_value, &accumulator);
     ASSERT_EQ(TIMEBASE_ERROR_OK, err);
     ASSERT_EQ(3U, accumulator);
     ASSERT_EQ(prescaler, 64U);
     ASSERT_EQ(ocr_value, 250U);
 
-    config.timer.type = TIMEBASE_TIMER_8_BIT_ASYNC;
-    config.timer.index = 0U;
+    timebase_static_config[0].timer.type = TIMER_ARCH_8_BIT_ASYNC;
+    timebase_static_config[0].timer.index = 0U;
     timer_8_bit_async_stub_set_next_parameters(TIMER8BIT_ASYNC_CLK_PRESCALER_1024, 127, 4U);
-    err = timebase_compute_timer_parameters(&config, &prescaler, &ocr_value, &accumulator);
+    err = timebase_compute_timer_parameters(0U, &prescaler, &ocr_value, &accumulator);
     ASSERT_EQ(TIMEBASE_ERROR_OK, err);
     ASSERT_EQ(4U, accumulator);
     ASSERT_EQ(prescaler, 1024);
@@ -127,36 +125,30 @@ TEST(timebase_module_tests, test_compute_timer_parameters)
 TEST(timebase_module_test, test_guard_wrong_parameters)
 {
     {
-        timebase_config_t config;
-        memset(&config, 0, sizeof(timebase_config_t));
+        memset(&timebase_static_config[0], 0, sizeof(timebase_config_t));
         uint16_t * null_prescaler = nullptr;
         uint16_t * null_ocr_value = nullptr;
         uint16_t * null_accumulator = nullptr;
-        auto ret = timebase_compute_timer_parameters(&config, null_prescaler, null_ocr_value, null_accumulator);
+        auto ret = timebase_compute_timer_parameters(0U, null_prescaler, null_ocr_value, null_accumulator);
         ASSERT_EQ(ret, TIMEBASE_ERROR_NULL_POINTER);
         uint16_t prescaler = 0;
         uint16_t accumulator = 0;
         uint16_t ocr_value  = 0;
 
         // Forcing a wrong timer type
-        config.timer.type = TIMEBASE_TIMER_UNDEFINED;
-        config.timescale = TIMEBASE_TIMESCALE_MICROSECONDS;
-        ret = timebase_compute_timer_parameters(&config, &prescaler, &ocr_value, &accumulator);
+        timebase_static_config[0].timer.type = TIMER_ARCH_UNDEFINED;
+        timebase_static_config[0].timescale = TIMEBASE_TIMESCALE_MICROSECONDS;
+        ret = timebase_compute_timer_parameters(0U, &prescaler, &ocr_value, &accumulator);
         ASSERT_EQ(ret, TIMEBASE_ERROR_UNSUPPORTED_TIMER_TYPE);
 
-        config.timer.type = TIMEBASE_TIMER_16_BIT;
-        config.timescale = TIMEBASE_TIMESCALE_UNDEFINED;
-        ret = timebase_compute_timer_parameters(&config, &prescaler, &ocr_value, &accumulator);
+        timebase_static_config[0].timer.type = TIMER_ARCH_16_BIT;
+        timebase_static_config[0].timescale = TIMEBASE_TIMESCALE_UNDEFINED;
+        ret = timebase_compute_timer_parameters(0U, &prescaler, &ocr_value, &accumulator);
         ASSERT_EQ(ret, TIMEBASE_ERROR_UNSUPPORTED_TIMESCALE);
     }
     {
-        timebase_config_t * null_config = nullptr;
-        timebase_config_t config;
-        memset(&config, 0, sizeof(timebase_config_t));
-        auto ret = timebase_init(0U, null_config);
-        ASSERT_EQ(ret, TIMEBASE_ERROR_NULL_POINTER);
-
-        ret = timebase_init(TIMEBASE_MAX_MODULES, &config);
+        timebase_error_t ret = TIMEBASE_ERROR_OK;
+        ret = timebase_init(TIMEBASE_MAX_MODULES);
         ASSERT_EQ(ret, TIMEBASE_ERROR_INVALID_INDEX);
     }
     {
@@ -212,56 +204,54 @@ TEST(timebase_module_test, test_guard_wrong_parameters)
 
 TEST(timebase_module_tests, test_wrong_index_error_forwarding)
 {
-    timebase_config_t config;
-    config.cpu_freq = 16'000'000;
-    config.timescale = TIMEBASE_TIMESCALE_MILLISECONDS;
+    timebase_static_config[0].clock_freq = 16'000'000;
+    timebase_static_config[0].timescale = TIMEBASE_TIMESCALE_MILLISECONDS;
 
     // This index should break execution as this timer driver does not exist (only '0' is declared)
-    config.timer.index = 1U;
+    timebase_static_config[0].timer.index = 1U;
 
-    config.timer.type = TIMEBASE_TIMER_16_BIT;
-    timebase_error_t err = timebase_init(0U, &config);
+    timebase_static_config[0].timer.type = TIMER_ARCH_16_BIT;
+    timebase_error_t err = timebase_init(0U);
     ASSERT_EQ(TIMEBASE_ERROR_TIMER_ERROR, err);
 
-    config.timer.type = TIMEBASE_TIMER_8_BIT;
-    err = timebase_init(0U, &config);
+    timebase_static_config[0].timer.type = TIMER_ARCH_8_BIT;
+    err = timebase_init(0U);
     ASSERT_EQ(TIMEBASE_ERROR_TIMER_ERROR, err);
 
-    config.timer.type = TIMEBASE_TIMER_8_BIT_ASYNC;
-    err = timebase_init(0U, &config);
+    timebase_static_config[0].timer.type = TIMER_ARCH_8_BIT_ASYNC;
+    err = timebase_init(0U);
     ASSERT_EQ(TIMEBASE_ERROR_TIMER_ERROR, err);
 
     // Repeat this with a wrong index for timebase module this time
-    config.timer.index = 0U;
-    err = timebase_init(TIMEBASE_MAX_MODULES, &config);
+    timebase_static_config[0].timer.index = 0U;
+    err = timebase_init(TIMEBASE_MAX_MODULES);
     ASSERT_EQ(TIMEBASE_ERROR_INVALID_INDEX, err);
 }
 
 TEST(timebase_module_tests, test_uninitialised_timer_error)
 {
-    timebase_config_t config;
-    config.cpu_freq = 16'000'000;
-    config.timescale = TIMEBASE_TIMESCALE_MILLISECONDS;
-    config.timer.type = TIMEBASE_TIMER_16_BIT;
-    config.timer.index = 0U;
+    timebase_static_config[0].clock_freq = 16'000'000;
+    timebase_static_config[0].timescale = TIMEBASE_TIMESCALE_MILLISECONDS;
+    timebase_static_config[0].timer.type = TIMER_ARCH_16_BIT;
+    timebase_static_config[0].timer.index = 0U;
 
-    timebase_error_t err = timebase_init(0U, &config);
+    timebase_error_t err = timebase_init(0U);
     ASSERT_EQ(TIMEBASE_ERROR_TIMER_UNINITIALISED, err);
 
-    config.timer.type = TIMEBASE_TIMER_8_BIT;
-    err = timebase_init(0U, &config);
+    timebase_static_config[0].timer.type = TIMER_ARCH_8_BIT;
+    err = timebase_init(0U);
     ASSERT_EQ(TIMEBASE_ERROR_TIMER_UNINITIALISED, err);
 
-    config.timer.type = TIMEBASE_TIMER_8_BIT_ASYNC;
-    err = timebase_init(0U, &config);
+    timebase_static_config[0].timer.type = TIMER_ARCH_8_BIT_ASYNC;
+    err = timebase_init(0U);
     ASSERT_EQ(TIMEBASE_ERROR_TIMER_UNINITIALISED, err);
 }
 
 TEST_F(TimebaseModuleBasicConfig, test_timer_initialisation)
 {
     timer_8_bit_stub_set_initialised(true);
-    config.timer.type = TIMEBASE_TIMER_8_BIT;
-    config.timer.index = 0U;
+    timebase_static_config[0].timer.type = TIMER_ARCH_8_BIT;
+    timebase_static_config[0].timer.index = 0U;
 
     timer_8_bit_prescaler_selection_t prescaler = TIMER8BIT_CLK_PRESCALER_64;
     uint32_t accumulator = 5U;
@@ -269,7 +259,7 @@ TEST_F(TimebaseModuleBasicConfig, test_timer_initialisation)
 
     timer_8_bit_stub_set_next_parameters(prescaler, ocra, accumulator);
 
-    timebase_error_t err = timebase_init(0U, &config);
+    timebase_error_t err = timebase_init(0U);
     ASSERT_EQ(TIMEBASE_ERROR_OK, err);
     timer_8_bit_config_t driver_config;
     memset(&driver_config, 0, sizeof(timer_8_bit_config_t));
@@ -304,6 +294,55 @@ TEST_F(TimebaseModule8BitInitialised, test_ticks_and_durations)
     err = timebase_get_duration_now(0U, &reference, &duration);
     ASSERT_EQ(err, TIMEBASE_ERROR_OK);
     ASSERT_EQ(duration,((uint32_t) (timebase_internal_config[0U].tick) + USHRT_MAX) - (uint32_t) reference);
+}
+
+TEST_F(TimebaseModule8BitInitialised, test_period_from_frequency_calculations)
+{
+    uint32_t frequency = 1000;
+    uint16_t period = 0;
+    timebase_error_t err = TIMEBASE_ERROR_OK;
+    err = timebase_compute_period_from_frequency(0U, &frequency, TIMEBASE_FREQUENCY_HZ, &period);
+    ASSERT_EQ(err, TIMEBASE_ERROR_FREQUENCY_TOO_HIGH);
+    ASSERT_EQ(period, 0);
+
+    timebase_static_config[0].clock_freq = 16'000'000;
+    timebase_static_config[0].timescale = TIMEBASE_TIMESCALE_MICROSECONDS;
+    timebase_static_config[0].timer.type = TIMER_ARCH_8_BIT;
+    timebase_static_config[0].timer.index = 0U;
+
+    err = timebase_init(0U);
+    ASSERT_EQ(err, TIMEBASE_ERROR_OK);
+    err = timebase_compute_period_from_frequency(0U, &frequency, TIMEBASE_FREQUENCY_HZ, &period);
+    ASSERT_EQ(err, TIMEBASE_ERROR_OK);
+    ASSERT_EQ(period, 1000U);
+
+    // What about singing a song ?
+    frequency = 440;
+    err = timebase_compute_period_from_frequency(0U, &frequency, TIMEBASE_FREQUENCY_HZ, &period);
+    ASSERT_EQ(err, TIMEBASE_ERROR_OK);
+    ASSERT_EQ(period, 2272);
+
+    frequency = 880;
+    err = timebase_compute_period_from_frequency(0U, &frequency, TIMEBASE_FREQUENCY_HZ, &period);
+    ASSERT_EQ(err, TIMEBASE_ERROR_OK);
+    ASSERT_EQ(period, 1136);
+
+    // Trying with custom frequencies as well
+    timebase_static_config[0].timescale = TIMEBASE_TIMESCALE_CUSTOM;
+    timebase_static_config[0].custom_target_freq = 44'000UL;
+    err = timebase_init(0U);
+    ASSERT_EQ(err, TIMEBASE_ERROR_OK);
+
+    frequency = 880;
+    err = timebase_compute_period_from_frequency(0U, &frequency, TIMEBASE_FREQUENCY_HZ, &period);
+    ASSERT_EQ(err, TIMEBASE_ERROR_OK);
+    ASSERT_EQ(period, 50);
+
+    // Highest pitched 'E' hearable by humans
+    frequency = 21'098;
+    err = timebase_compute_period_from_frequency(0U, &frequency, TIMEBASE_FREQUENCY_HZ, &period);
+    ASSERT_EQ(err, TIMEBASE_ERROR_OK);
+    ASSERT_EQ(period, 2);
 }
 
 

@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -28,8 +28,9 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "timer_16_bit_registers_stub.h"
 #include <string.h>
+#include "timer_16_bit.h"
+#include "timer_16_bit_registers_stub.h"
 
 timer_16_bit_registers_stub_t timer_16_bit_registers_stub = {0};
 
@@ -38,24 +39,23 @@ void timer_16_bit_registers_stub_erase(void)
     memset(&timer_16_bit_registers_stub, 0, sizeof(timer_16_bit_registers_stub_t));
 }
 
-void timer_16_bit_registers_stub_init_handle(timer_16_bit_handle_t * handle)
+timer_16_bit_handle_t timer_16_bit_static_handle[TIMER_16_BIT_COUNT] =
 {
-    if (NULL != handle)
     {
-        handle->TCCRA = &timer_16_bit_registers_stub.TCCRA;
-        handle->TCCRB = &timer_16_bit_registers_stub.TCCRB;
-        handle->TCCRC = &timer_16_bit_registers_stub.TCCRC;
-        handle->OCRA_H = &timer_16_bit_registers_stub.OCRA_H;
-        handle->OCRA_L = &timer_16_bit_registers_stub.OCRA_L;
-        handle->OCRB_H = &timer_16_bit_registers_stub.OCRB_H;
-        handle->OCRB_L = &timer_16_bit_registers_stub.OCRB_L;
-        handle->TCNT_H = &timer_16_bit_registers_stub.TCNT_H;
-        handle->TCNT_L = &timer_16_bit_registers_stub.TCNT_L;
-        handle->ICR_H = &timer_16_bit_registers_stub.ICR_H;
-        handle->ICR_L = &timer_16_bit_registers_stub.ICR_L;
-        handle->TIMSK = &timer_16_bit_registers_stub.TIMSK;
-        handle->TIFR = &timer_16_bit_registers_stub.TIFR;
+        .TCCRA = &timer_16_bit_registers_stub.TCCRA,
+        .TCCRB = &timer_16_bit_registers_stub.TCCRB,
+        .TCCRC = &timer_16_bit_registers_stub.TCCRC,
+        .OCRA_H = &timer_16_bit_registers_stub.OCRA_H,
+        .OCRA_L = &timer_16_bit_registers_stub.OCRA_L,
+        .OCRB_H = &timer_16_bit_registers_stub.OCRB_H,
+        .OCRB_L = &timer_16_bit_registers_stub.OCRB_L,
+        .TCNT_H = &timer_16_bit_registers_stub.TCNT_H,
+        .TCNT_L = &timer_16_bit_registers_stub.TCNT_L,
+        .ICR_H = &timer_16_bit_registers_stub.ICR_H,
+        .ICR_L = &timer_16_bit_registers_stub.ICR_L,
+        .TIMSK = &timer_16_bit_registers_stub.TIMSK,
+        .TIFR = &timer_16_bit_registers_stub.TIFR
     }
-}
+};
 
 

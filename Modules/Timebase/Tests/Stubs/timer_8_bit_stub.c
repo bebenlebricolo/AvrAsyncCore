@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -70,17 +70,18 @@ void timer_8_bit_stub_get_driver_configuration(timer_8_bit_config_t * const conf
     *config = configuration.driver_config;
 }
 
-void timer_8_bit_compute_matching_parameters(const uint32_t * const cpu_freq,
-                                             const uint32_t * const target_freq,
-                                             timer_8_bit_prescaler_selection_t * const prescaler,
-                                             uint8_t * const ocra,
-                                             uint16_t * const accumulator)
+timer_error_t timer_8_bit_compute_matching_parameters(const uint32_t * const clock_freq,
+                                                      const uint32_t * const target_freq,
+                                                      timer_8_bit_prescaler_selection_t * const prescaler,
+                                                      uint8_t * const ocra,
+                                                      uint16_t * const accumulator)
 {
-    (void) cpu_freq;
+    (void) clock_freq;
     (void) target_freq;
     *prescaler = configuration.prescaler;
     *ocra = configuration.ocra;
     *accumulator = configuration.accumulator;
+    return TIMER_ERROR_OK;
 }
 
 const timer_generic_prescaler_pair_t timer_8_bit_prescaler_table[TIMER_8_BIT_MAX_PRESCALER_COUNT] =
@@ -139,20 +140,12 @@ timer_error_t timer_8_bit_get_default_config(timer_8_bit_config_t * config)
     config->timing_config.ocrb_val = 0U;
     config->timing_config.prescaler = TIMER8BIT_CLK_NO_CLOCK;
     config->timing_config.waveform_mode = TIMER8BIT_WG_NORMAL;
-    config->timing_config.comp_match_a = TIMER8BIT_CMOD_NORMAL;
-    config->timing_config.comp_match_b = TIMER8BIT_CMOD_NORMAL;
+    config->timing_config.comp_mode_a = TIMER8BIT_CMOD_NORMAL;
+    config->timing_config.comp_mode_b = TIMER8BIT_CMOD_NORMAL;
 
     config->force_compare.force_comp_match_a = false;
     config->force_compare.force_comp_match_b = false;
 
-    /* Architecture and device dependent, must be set at configuration time */
-    config->handle.OCRA = NULL;
-    config->handle.OCRB = NULL;
-    config->handle.TCCRA = NULL;
-    config->handle.TCCRB = NULL;
-    config->handle.TCNT = NULL;
-    config->handle.TIFR = NULL;
-    config->handle.TIMSK = NULL;
     return ret;
 }
 

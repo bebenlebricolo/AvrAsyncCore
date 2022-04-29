@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -36,20 +36,6 @@ timer_8_bit_registers_stub_t timer_8_bit_registers_stub = {0};
 void timer_8_bit_registers_stub_erase(void)
 {
     memset(&timer_8_bit_registers_stub, 0, sizeof(timer_8_bit_registers_stub_t));
-}
-
-void timer_8_bit_registers_stub_init_handle(timer_8_bit_handle_t * handle)
-{
-    if (NULL != handle)
-    {
-        handle->OCRA = &timer_8_bit_registers_stub.OCRA;
-        handle->OCRB = &timer_8_bit_registers_stub.OCRB;
-        handle->TCCRA = &timer_8_bit_registers_stub.TCCRA;
-        handle->TCCRB = &timer_8_bit_registers_stub.TCCRB;
-        handle->TCNT = &timer_8_bit_registers_stub.TCNT;
-        handle->TIMSK = &timer_8_bit_registers_stub.TIMSK;
-        handle->TIFR = &timer_8_bit_registers_stub.TIFR;
-    }
 }
 
 

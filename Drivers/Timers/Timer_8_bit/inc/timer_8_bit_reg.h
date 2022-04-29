@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -149,8 +149,8 @@ typedef struct
     uint8_t                           counter;          /**< Main Counter value used to start the timer                             */
     uint8_t                           ocra_val;         /**< Value to be set inside OCRA register to control PWM for instance       */
     uint8_t                           ocrb_val;         /**< Value to be set inside OCRB register to control PWM for instance       */
-    timer_8_bit_compare_output_mode_t comp_match_a;     /**< Equivalent to TCCRnA COMnA0 and COMnA1 bits                            */
-    timer_8_bit_compare_output_mode_t comp_match_b;     /**< Equivalent to TCCRnA COMnB0 and COMnB1 bits                            */
+    timer_8_bit_compare_output_mode_t comp_mode_a;      /**< Describes the kind of compare match behavior ; equivalent to TCCRnA COMnA0 and COMnA1 bits */
+    timer_8_bit_compare_output_mode_t comp_mode_b;      /**< Describes the kind of compare match behavior ; equivalent to TCCRnA COMnB0 and COMnB1 bits */
     timer_8_bit_waveform_generation_t waveform_mode;    /**< Selects the right waveform mode and dispatch it to the right registers */
     timer_8_bit_prescaler_selection_t prescaler;        /**< Selects the right prescaler to be fed in the timer                     */
 } timer_8_bit_timing_config_t;

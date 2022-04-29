@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -223,7 +223,7 @@ hd44780_lcd_error_t hd44780_lcd_init(hd44780_lcd_config_t const * const config);
 
 /**
  * @brief Gives a default configuration to start with
- * @param[in/out] config    :   device configuration
+ * @param[in,out] config    :   device configuration
  * @return hd44780_lcd_error_t
  *      HD44780_LCD_ERROR_OK                :   Operation succeeded
  *      HD44780_LCD_ERROR_NULL_POINTER      :   Given pointer is uninitialised

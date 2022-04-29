@@ -4,7 +4,7 @@
 @<FreeMyCode>
 FreeMyCode version : 1.0 RC alpha
     Author : bebenlebricolo
-    License : 
+    License :
         name : GPLv3
         url : https://www.gnu.org/licenses/quick-guide-gplv3.html
     Date : 12/02/2021
@@ -42,7 +42,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 static struct
 {
-    timer_16_bit_handle_t handle;
     timer_16_bit_prescaler_selection_t prescaler;
     bool is_initialised;
 } internal_config[TIMER_16_BIT_COUNT] = {0};
@@ -80,63 +79,62 @@ uint16_t timer_16_bit_prescaler_to_value(const timer_16_bit_prescaler_selection_
     return 0;
 }
 
-void timer_16_bit_compute_matching_parameters(const uint32_t * const cpu_freq,
-                                              const uint32_t * const target_freq,
-                                              timer_16_bit_prescaler_selection_t * const prescaler,
-                                              uint16_t * const ocra,
-                                              uint16_t * const accumulator)
+timer_error_t timer_16_bit_compute_matching_parameters(const uint32_t * const clock_freq,
+                                                       const uint32_t * const target_freq,
+                                                       const timer_generic_resolution_t resolution,
+                                                       timer_16_bit_prescaler_selection_t * const prescaler,
+                                                       uint16_t * const ocr,
+                                                       uint16_t * const accumulator)
 {
     timer_generic_parameters_t parameters =
     {
         .input =
         {
-            .cpu_frequency = *cpu_freq,
+            .clock_freq = *clock_freq,
             .target_frequency = *target_freq,
-            .resolution = TIMER_GENERIC_RESOLUTION_16_BIT,
+            .resolution = resolution,
             .prescaler_lookup_array.array = timer_16_bit_prescaler_table,
             .prescaler_lookup_array.size = TIMER_16_BIT_MAX_PRESCALER_COUNT,
         },
     };
-    timer_generic_compute_parameters(&parameters);
+
+    if( TIMER_ERROR_OK != timer_generic_compute_parameters(&parameters))
+    {
+        return TIMER_ERROR_CONFIG;
+    }
+
     *prescaler = timer_16_bit_prescaler_from_value(&parameters.output.prescaler);
-    *ocra = parameters.output.ocra;
+    *ocr = parameters.output.ocr;
     *accumulator = parameters.output.accumulator;
+
+    return TIMER_ERROR_OK;
 }
 
-static inline timer_error_t check_handle(timer_16_bit_handle_t * const handle)
+timer_error_t timer_16_bit_compute_closest_prescaler(const uint32_t * const clock_freq,
+                                            const uint32_t * const target_freq,
+                                            const timer_generic_resolution_t resolution,
+                                            timer_16_bit_prescaler_selection_t * const prescaler)
 {
-    bool found_null = false;
-    if (NULL == handle)
+    timer_generic_parameters_t parameters =
     {
-        /* Not the use case we really want to check, but this is a case of error anyway
-        which will generate segfaults errors if we let it propagate further ... */
-        found_null = true;
-    }
-    else
+        .input =
+        {
+            .clock_freq = *clock_freq,
+            .target_frequency = *target_freq,
+            .resolution = resolution,
+            .prescaler_lookup_array.array = timer_16_bit_prescaler_table,
+            .prescaler_lookup_array.size = TIMER_16_BIT_MAX_PRESCALER_COUNT,
+        },
+    };
+
+    if(TIMER_ERROR_OK != timer_generic_find_closest_prescaler(&parameters))
     {
-        found_null |= (NULL == handle->TCCRA);
-        found_null |= (NULL == handle->TCCRB);
-        found_null |= (NULL == handle->TCCRC);
-
-        found_null |= (NULL == handle->OCRA_H);
-        found_null |= (NULL == handle->OCRA_L);
-        found_null |= (NULL == handle->OCRB_H);
-        found_null |= (NULL == handle->OCRB_L);
-
-        found_null |= (NULL == handle->TCNT_H);
-        found_null |= (NULL == handle->TCNT_L);
-
-        found_null |= (NULL == handle->ICR_H);
-        found_null |= (NULL == handle->ICR_L);
-
-        found_null |= (NULL == handle->TIMSK);
-        found_null |= (NULL == handle->TIFR);
+        return TIMER_ERROR_CONFIG;
     }
-    if (found_null)
-    {
-        return TIMER_ERROR_NULL_HANDLE;
-    }
-    return TIMER_ERROR_OK;;
+
+    *prescaler = timer_16_bit_prescaler_from_value(&parameters.output.prescaler);
+
+    return TIMER_ERROR_OK;
 }
 
 static inline timer_error_t check_id(uint8_t id)
@@ -146,40 +144,6 @@ static inline timer_error_t check_id(uint8_t id)
         return TIMER_ERROR_UNKNOWN_TIMER;
     }
     return TIMER_ERROR_OK;
-}
-
-timer_error_t timer_16_bit_set_handle(uint8_t id, timer_16_bit_handle_t * const handle)
-{
-    timer_error_t ret = check_id(id);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
-
-    if (NULL == handle)
-    {
-        return TIMER_ERROR_NULL_POINTER;
-    }
-
-    memcpy(&internal_config[id].handle, handle, sizeof(timer_16_bit_handle_t));
-    return ret;
-}
-
-timer_error_t timer_16_bit_get_handle(uint8_t id, timer_16_bit_handle_t * const handle)
-{
-    timer_error_t ret = check_id(id);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
-
-    if (NULL == handle)
-    {
-        return TIMER_ERROR_NULL_POINTER;
-    }
-
-    memcpy(handle, &internal_config[id].handle, sizeof(timer_16_bit_handle_t));
-    return ret;
 }
 
 timer_error_t timer_16_bit_get_default_config(timer_16_bit_config_t * config)
@@ -214,26 +178,13 @@ timer_error_t timer_16_bit_get_default_config(timer_16_bit_config_t * config)
     config->input_capture.edge_select = TIMER16BIT_INPUT_CAPTURE_EDGE_FALLING_EDGE;
     config->input_capture.use_noise_canceler = false;
 
-    /* Architecture and device dependent, must be set at configuration time */
-    config->handle.OCRA_H = NULL;
-    config->handle.OCRA_L = NULL;
-    config->handle.OCRB_H = NULL;
-    config->handle.OCRB_L = NULL;
-    config->handle.TCCRA = NULL;
-    config->handle.TCCRB = NULL;
-    config->handle.TCCRC = NULL;
-    config->handle.TCNT_H = NULL;
-    config->handle.TCNT_L = NULL;
-    config->handle.ICR_H = NULL;
-    config->handle.ICR_L = NULL;
-    config->handle.TIFR = NULL;
-    config->handle.TIMSK = NULL;
     return ret;
 }
 
 timer_error_t timer_16_bit_set_force_compare_config(uint8_t id, timer_16_bit_force_compare_config_t * const force_comp_config)
 {
     timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
 
     if (TIMER_ERROR_OK != ret)
     {
@@ -244,31 +195,24 @@ timer_error_t timer_16_bit_set_force_compare_config(uint8_t id, timer_16_bit_for
         return TIMER_ERROR_NULL_POINTER;
     }
 
-    /* Not fully configured handle, do not attempt to write to it until configured !*/
-    ret = check_handle(&internal_config[id].handle);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
-
     /* Handles force output compare A flags */
     if (true == force_comp_config->force_comp_match_a)
     {
-        *(internal_config[id].handle.TCCRC) |= FOCA_MSK ;
+        *(handle->TCCRC) |= FOCA_MSK ;
     }
     else
     {
-        *(internal_config[id].handle.TCCRC) &=  ~FOCA_MSK ;
+        *(handle->TCCRC) &=  ~FOCA_MSK ;
     }
 
     /* Handles force output compare A flags */
     if (true == force_comp_config->force_comp_match_b)
     {
-        *(internal_config[id].handle.TCCRC) |= FOCB_MSK ;
+        *(handle->TCCRC) |= FOCB_MSK ;
     }
     else
     {
-        *(internal_config[id].handle.TCCRC) &=  ~FOCB_MSK ;
+        *(handle->TCCRC) &=  ~FOCB_MSK ;
     }
     return ret;
 }
@@ -276,6 +220,8 @@ timer_error_t timer_16_bit_set_force_compare_config(uint8_t id, timer_16_bit_for
 timer_error_t timer_16_bit_get_force_compare_config(uint8_t id, timer_16_bit_force_compare_config_t * force_comp_config)
 {
     timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
+
     if (TIMER_ERROR_OK != ret)
     {
         return ret;
@@ -284,15 +230,10 @@ timer_error_t timer_16_bit_get_force_compare_config(uint8_t id, timer_16_bit_for
     {
         return TIMER_ERROR_NULL_POINTER;
     }
-    /* Not fully configured handle, do not attempt to write to it until configured !*/
-    ret = check_handle(&internal_config[id].handle);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
+
 
     /* Handles Force Compare Output A flag */
-    if (0U == (*(internal_config[id].handle.TCCRC) & FOCA_MSK))
+    if (0U == (*(handle->TCCRC) & FOCA_MSK))
     {
         force_comp_config->force_comp_match_a = false;
     }
@@ -302,7 +243,7 @@ timer_error_t timer_16_bit_get_force_compare_config(uint8_t id, timer_16_bit_for
     }
 
     /* Handles Force Compare Output B flag */
-    if (0U == (*(internal_config[id].handle.TCCRC) & FOCB_MSK))
+    if (0U == (*(handle->TCCRC) & FOCB_MSK))
     {
         force_comp_config->force_comp_match_b = false;
     }
@@ -316,6 +257,8 @@ timer_error_t timer_16_bit_get_force_compare_config(uint8_t id, timer_16_bit_for
 timer_error_t timer_16_bit_set_interrupt_config(uint8_t id, timer_16_bit_interrupt_config_t * const it_config)
 {
     timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
+
     if (TIMER_ERROR_OK != ret)
     {
         return ret;
@@ -326,49 +269,45 @@ timer_error_t timer_16_bit_set_interrupt_config(uint8_t id, timer_16_bit_interru
         return TIMER_ERROR_NULL_POINTER;
     }
 
-    ret = check_handle(&internal_config[id].handle);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
+
 
     /* Input capture interrupt enable bit */
     if (true == it_config->it_input_capture)
     {
-        *(internal_config[id].handle.TIMSK) |= ICIE_MSK;
+        *(handle->TIMSK) |= ICIE_MSK;
     }
     else
     {
-        *(internal_config[id].handle.TIMSK) &= ~ICIE_MSK;
+        *(handle->TIMSK) &= ~ICIE_MSK;
     }
 
     /* TIMSK register */
     if (true == it_config->it_comp_match_a)
     {
-        *(internal_config[id].handle.TIMSK) |= OCIEA_MSK;
+        *(handle->TIMSK) |= OCIEA_MSK;
     }
     else
     {
-        *(internal_config[id].handle.TIMSK) &= ~OCIEA_MSK;
+        *(handle->TIMSK) &= ~OCIEA_MSK;
     }
 
     if (true == it_config->it_comp_match_b)
     {
-        *(internal_config[id].handle.TIMSK) |= OCIEB_MSK;
+        *(handle->TIMSK) |= OCIEB_MSK;
     }
     else
     {
-        *(internal_config[id].handle.TIMSK) &= ~OCIEB_MSK;
+        *(handle->TIMSK) &= ~OCIEB_MSK;
     }
 
     /* TOIE interrupt flag is the first bit, no need to bitshift it */
     if (true == it_config->it_timer_overflow)
     {
-        *(internal_config[id].handle.TIMSK) |= TOIE_MSK;
+        *(handle->TIMSK) |= TOIE_MSK;
     }
     else
     {
-        *(internal_config[id].handle.TIMSK) &= ~TOIE_MSK;
+        *(handle->TIMSK) &= ~TOIE_MSK;
     }
 
     return ret;
@@ -378,6 +317,8 @@ timer_error_t timer_16_bit_set_interrupt_config(uint8_t id, timer_16_bit_interru
 timer_error_t timer_16_bit_get_interrupt_config(uint8_t id, timer_16_bit_interrupt_config_t * it_config)
 {
     timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
+
     if (TIMER_ERROR_OK != ret)
     {
         return ret;
@@ -388,14 +329,10 @@ timer_error_t timer_16_bit_get_interrupt_config(uint8_t id, timer_16_bit_interru
         return TIMER_ERROR_NULL_POINTER;
     }
 
-    ret = check_handle(&internal_config[id].handle);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
+
 
     /* Input capture interrupt enable flag */
-    if (0U == (*(internal_config[id].handle.TIMSK) & ICIE_MSK))
+    if (0U == (*(handle->TIMSK) & ICIE_MSK))
     {
         it_config->it_input_capture = false;
     }
@@ -405,7 +342,7 @@ timer_error_t timer_16_bit_get_interrupt_config(uint8_t id, timer_16_bit_interru
     }
 
     /* Output Compare Match A Interrupt Flag */
-    if (0U == (*(internal_config[id].handle.TIMSK) & OCIEA_MSK))
+    if (0U == (*(handle->TIMSK) & OCIEA_MSK))
     {
         it_config->it_comp_match_a = false;
     }
@@ -415,7 +352,7 @@ timer_error_t timer_16_bit_get_interrupt_config(uint8_t id, timer_16_bit_interru
     }
 
     /* Output Compare Match B Interrupt Flag */
-    if (0U == (*(internal_config[id].handle.TIMSK) & OCIEB_MSK))
+    if (0U == (*(handle->TIMSK) & OCIEB_MSK))
     {
         it_config->it_comp_match_b = false;
     }
@@ -425,7 +362,7 @@ timer_error_t timer_16_bit_get_interrupt_config(uint8_t id, timer_16_bit_interru
     }
 
     /* Timer Overflow Interrupt Flag */
-    if (0U == (*(internal_config[id].handle.TIMSK) & TOV_MSK))
+    if (0U == (*(handle->TIMSK) & TOV_MSK))
     {
         it_config->it_timer_overflow = false;
     }
@@ -440,6 +377,8 @@ timer_error_t timer_16_bit_get_interrupt_config(uint8_t id, timer_16_bit_interru
 timer_error_t timer_16_bit_get_interrupt_flags(uint8_t id, timer_16_bit_interrupt_config_t * it_flags)
 {
     timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
+
     if (TIMER_ERROR_OK != ret)
     {
         return ret;
@@ -450,14 +389,10 @@ timer_error_t timer_16_bit_get_interrupt_flags(uint8_t id, timer_16_bit_interrup
         return TIMER_ERROR_NULL_POINTER;
     }
 
-    ret = check_handle(&internal_config[id].handle);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
+
 
     /* Input capture interrupt flag  */
-    if (0U == (*(internal_config[id].handle.TIFR) & ICF_MSK))
+    if (0U == (*(handle->TIFR) & ICF_MSK))
     {
         it_flags->it_input_capture = false;
     }
@@ -467,7 +402,7 @@ timer_error_t timer_16_bit_get_interrupt_flags(uint8_t id, timer_16_bit_interrup
     }
 
     /* Output Compare Match A Interrupt Flag */
-    if (0U == (*(internal_config[id].handle.TIFR) & OCIEA_MSK))
+    if (0U == (*(handle->TIFR) & OCIEA_MSK))
     {
         it_flags->it_comp_match_a = false;
     }
@@ -477,7 +412,7 @@ timer_error_t timer_16_bit_get_interrupt_flags(uint8_t id, timer_16_bit_interrup
     }
 
     /* Output Compare Match B Interrupt Flag */
-    if (0U == (*(internal_config[id].handle.TIFR) & OCIEB_MSK))
+    if (0U == (*(handle->TIFR) & OCIEB_MSK))
     {
         it_flags->it_comp_match_b = false;
     }
@@ -487,7 +422,7 @@ timer_error_t timer_16_bit_get_interrupt_flags(uint8_t id, timer_16_bit_interrup
     }
 
     /* Timer Overflow Interrupt Flag */
-    if (0U == (*(internal_config[id].handle.TIFR) & TOV_MSK))
+    if (0U == (*(handle->TIFR) & TOV_MSK))
     {
         it_flags->it_timer_overflow = false;
     }
@@ -499,31 +434,38 @@ timer_error_t timer_16_bit_get_interrupt_flags(uint8_t id, timer_16_bit_interrup
     return ret;
 
 }
+
+void timer_16_bit_clear_init_states(void)
+{
+    for (uint8_t i = 0 ; i < TIMER_16_BIT_COUNT ; i++)
+    {
+        internal_config[i].is_initialised = false;
+    }
+}
+
 #endif
-
-
 
 timer_error_t timer_16_bit_set_prescaler(uint8_t id, const timer_16_bit_prescaler_selection_t prescaler)
 {
     timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
+
     if (TIMER_ERROR_OK != ret)
     {
         return ret;
     }
 
-    ret = check_handle(&internal_config[id].handle);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
 
-    *(internal_config[id].handle.TCCRB) = (*(internal_config[id].handle.TCCRB) & ~CS_MSK) | prescaler;
+
+    *(handle->TCCRB) = (*(handle->TCCRB) & ~CS_MSK) | prescaler;
     return ret;
 }
 
 timer_error_t timer_16_bit_get_prescaler(uint8_t id, timer_16_bit_prescaler_selection_t * prescaler)
 {
     timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
+
     if (TIMER_ERROR_OK != ret)
     {
         return ret;
@@ -534,37 +476,29 @@ timer_error_t timer_16_bit_get_prescaler(uint8_t id, timer_16_bit_prescaler_sele
         return TIMER_ERROR_NULL_POINTER;
     }
 
-    ret = check_handle(&internal_config[id].handle);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
-
-    *prescaler = (*(internal_config[id].handle.TCCRB) & CS_MSK);
+    *prescaler = (*(handle->TCCRB) & CS_MSK);
     return ret;
 }
 
 timer_error_t timer_16_bit_set_compare_match_A(uint8_t id, const timer_16_bit_compare_output_mode_t compA)
 {
     timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
+
     if (TIMER_ERROR_OK != ret)
     {
         return ret;
     }
 
-    ret = check_handle(&internal_config[id].handle);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
-
-    *(internal_config[id].handle.TCCRA) = (*(internal_config[id].handle.TCCRA) & ~COMA_MSK) | (compA << COMA0_BIT);
+    *(handle->TCCRA) = (*(handle->TCCRA) & ~COMA_MSK) | (compA << COMA0_BIT);
     return ret;
 }
 
 timer_error_t timer_16_bit_get_compare_match_A(uint8_t id, timer_16_bit_compare_output_mode_t * compA)
 {
     timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
+
     if (TIMER_ERROR_OK != ret)
     {
         return ret;
@@ -575,37 +509,29 @@ timer_error_t timer_16_bit_get_compare_match_A(uint8_t id, timer_16_bit_compare_
         return TIMER_ERROR_NULL_POINTER;
     }
 
-    ret = check_handle(&internal_config[id].handle);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
-
-    *compA = ((*(internal_config[id].handle.TCCRA) & COMA_MSK) >> COMA0_BIT);
+    *compA = ((*(handle->TCCRA) & COMA_MSK) >> COMA0_BIT);
     return ret;
 }
 
 timer_error_t timer_16_bit_set_compare_match_B(uint8_t id, timer_16_bit_compare_output_mode_t compB)
 {
     timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
+
     if (TIMER_ERROR_OK != ret)
     {
         return ret;
     }
 
-    ret = check_handle(&internal_config[id].handle);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
-
-    *(internal_config[id].handle.TCCRA) = (*(internal_config[id].handle.TCCRA) & ~COMB_MSK) | (compB << COMB0_BIT);
+    *(handle->TCCRA) = (*(handle->TCCRA) & ~COMB_MSK) | (compB << COMB0_BIT);
     return ret;
 }
 
 timer_error_t timer_16_bit_get_compare_match_B(uint8_t id, timer_16_bit_compare_output_mode_t * compB)
 {
     timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
+
     if (TIMER_ERROR_OK != ret)
     {
         return ret;
@@ -616,33 +542,23 @@ timer_error_t timer_16_bit_get_compare_match_B(uint8_t id, timer_16_bit_compare_
         return TIMER_ERROR_NULL_POINTER;
     }
 
-    ret = check_handle(&internal_config[id].handle);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
-
-    *compB = ((*(internal_config[id].handle.TCCRA) & COMB_MSK) >> COMB0_BIT);
+    *compB = ((*(handle->TCCRA) & COMB_MSK) >> COMB0_BIT);
     return ret;
 }
 
 timer_error_t timer_16_bit_set_waveform_generation(uint8_t id, const timer_16_bit_waveform_generation_t waveform)
 {
     timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
+
     if (TIMER_ERROR_OK != ret)
     {
         return ret;
     }
 
-    ret = check_handle(&internal_config[id].handle);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
-
-    *(internal_config[id].handle.TCCRA) = (*(internal_config[id].handle.TCCRA) & ~(WGM0_MSK | WGM1_MSK)) | (waveform & (WGM0_MSK | WGM1_MSK));
+    *(handle->TCCRA) = (*(handle->TCCRA) & ~(WGM0_MSK | WGM1_MSK)) | (waveform & (WGM0_MSK | WGM1_MSK));
     /* Select bit index 2 and 3 (0x3 -> 0b11) of waveform mode (matches datasheet bit mapping) and store it to bit index 3 of TCCRB with one more bitshift */
-    *(internal_config[id].handle.TCCRB) = (*(internal_config[id].handle.TCCRB) & ~(WGM2_MSK | WGM3_MSK)) | ((waveform & 0x0C) << 1U);
+    *(handle->TCCRB) = (*(handle->TCCRB) & ~(WGM2_MSK | WGM3_MSK)) | ((waveform & 0x0C) << 1U);
     return ret;
 }
 
@@ -650,12 +566,8 @@ timer_error_t timer_16_bit_set_waveform_generation(uint8_t id, const timer_16_bi
 timer_error_t timer_16_bit_set_input_compare_noise_canceler(uint8_t id, const bool enabled)
 {
     timer_error_t ret = check_id(id);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
 
-    ret = check_handle(&internal_config[id].handle);
     if (TIMER_ERROR_OK != ret)
     {
         return ret;
@@ -663,11 +575,11 @@ timer_error_t timer_16_bit_set_input_compare_noise_canceler(uint8_t id, const bo
 
     if (enabled)
     {
-        *(internal_config[id].handle.TCCRB) |= INC_MSK;
+        *(handle->TCCRB) |= INC_MSK;
     }
     else
     {
-        *(internal_config[id].handle.TCCRB) &= ~INC_MSK;
+        *(handle->TCCRB) &= ~INC_MSK;
     }
 
     return ret;
@@ -676,6 +588,8 @@ timer_error_t timer_16_bit_set_input_compare_noise_canceler(uint8_t id, const bo
 timer_error_t timer_16_bit_get_input_compare_noise_canceler(uint8_t id, bool * const enabled)
 {
     timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
+
     if (TIMER_ERROR_OK != ret)
     {
         return ret;
@@ -686,37 +600,29 @@ timer_error_t timer_16_bit_get_input_compare_noise_canceler(uint8_t id, bool * c
         return TIMER_ERROR_NULL_POINTER;
     }
 
-    ret = check_handle(&internal_config[id].handle);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
-
-    *enabled = ((*(internal_config[id].handle.TCCRB) & INC_MSK) != 0U);
+    *enabled = ((*(handle->TCCRB) & INC_MSK) != 0U);
     return ret;
 }
 
 timer_error_t timer_16_bit_set_input_compare_edge_select(uint8_t id, const timer_16_bit_input_capture_edge_select_flag_t edge)
 {
     timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
+
     if (TIMER_ERROR_OK != ret)
     {
         return ret;
     }
 
-    ret = check_handle(&internal_config[id].handle);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
-
-    *(internal_config[id].handle.TCCRB) =  (*(internal_config[id].handle.TCCRB) & ~ICES_MSK) | (edge << ICES_BIT);
+    *(handle->TCCRB) =  (*(handle->TCCRB) & ~ICES_MSK) | (edge << ICES_BIT);
     return ret;
 }
 
 timer_error_t timer_16_bit_get_input_compare_edge_select(uint8_t id, timer_16_bit_input_capture_edge_select_flag_t * const edge)
 {
     timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
+
     if (TIMER_ERROR_OK != ret)
     {
         return ret;
@@ -727,13 +633,7 @@ timer_error_t timer_16_bit_get_input_compare_edge_select(uint8_t id, timer_16_bi
         return TIMER_ERROR_NULL_POINTER;
     }
 
-    ret = check_handle(&internal_config[id].handle);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
-
-    if (0 !=  (*(internal_config[id].handle.TCCRB) & ICES_MSK))
+    if (0 !=  (*(handle->TCCRB) & ICES_MSK))
     {
         *edge = TIMER16BIT_INPUT_CAPTURE_EDGE_RISING_EDGE;
     }
@@ -747,6 +647,8 @@ timer_error_t timer_16_bit_get_input_compare_edge_select(uint8_t id, timer_16_bi
 timer_error_t timer_16_bit_get_input_capture_value(uint8_t id, uint16_t * ticks)
 {
     timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
+
     if (TIMER_ERROR_OK != ret)
     {
         return ret;
@@ -757,14 +659,8 @@ timer_error_t timer_16_bit_get_input_capture_value(uint8_t id, uint16_t * ticks)
         return TIMER_ERROR_NULL_POINTER;
     }
 
-    ret = check_handle(&internal_config[id].handle);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
-
-    *ticks  = *(internal_config[id].handle.TCNT_L);
-    *ticks |= *(internal_config[id].handle.TCNT_H) << 8U;
+    *ticks  = *(handle->TCNT_L);
+    *ticks |= *(handle->TCNT_H) << 8U;
     return ret;
 }
 
@@ -772,6 +668,8 @@ timer_error_t timer_16_bit_get_input_capture_value(uint8_t id, uint16_t * ticks)
 timer_error_t timer_16_bit_get_waveform_generation(uint8_t id, timer_16_bit_waveform_generation_t * waveform)
 {
     timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
+
     if (TIMER_ERROR_OK != ret)
     {
         return ret;
@@ -782,35 +680,25 @@ timer_error_t timer_16_bit_get_waveform_generation(uint8_t id, timer_16_bit_wave
         return TIMER_ERROR_NULL_POINTER;
     }
 
-    ret = check_handle(&internal_config[id].handle);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
-
     *waveform = (timer_16_bit_waveform_generation_t)(0U);
-    *waveform |= (*(internal_config[id].handle.TCCRA) & (WGM0_MSK | WGM1_MSK));
-    *waveform |= (*(internal_config[id].handle.TCCRB) & (WGM2_MSK | WGM3_MSK)) >> 1U;
+    *waveform |= (*(handle->TCCRA) & (WGM0_MSK | WGM1_MSK));
+    *waveform |= (*(handle->TCCRB) & (WGM2_MSK | WGM3_MSK)) >> 1U;
     return ret;
 }
 
 timer_error_t timer_16_bit_set_counter_value(uint8_t id, const uint16_t * const ticks)
 {
     timer_error_t ret = check_id(id);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
 
-    ret = check_handle(&internal_config[id].handle);
     if (TIMER_ERROR_OK != ret)
     {
         return ret;
     }
 
     /* Write new value to internal timer/counter register */
-    *(internal_config[id].handle.TCNT_L) = *ticks & 0xFF;
-    *(internal_config[id].handle.TCNT_H) = (*ticks & 0xFF00) >> 8U;
+    *(handle->TCNT_L) = *ticks & 0xFF;
+    *(handle->TCNT_H) = (*ticks & 0xFF00) >> 8U;
 
     return ret;
 }
@@ -818,6 +706,8 @@ timer_error_t timer_16_bit_set_counter_value(uint8_t id, const uint16_t * const 
 timer_error_t timer_16_bit_get_counter_value(uint8_t id, uint16_t * const ticks)
 {
     timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
+
     if (TIMER_ERROR_OK != ret)
     {
         return ret;
@@ -828,40 +718,32 @@ timer_error_t timer_16_bit_get_counter_value(uint8_t id, uint16_t * const ticks)
         return TIMER_ERROR_NULL_POINTER;
     }
 
-    ret = check_handle(&internal_config[id].handle);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
-
     /* Transfer data from internal device's timer/count main register */
-    *ticks  = (*internal_config[id].handle.TCNT_L);
-    *ticks |= (*internal_config[id].handle.TCNT_H) << 8U;
+    *ticks  = (*handle->TCNT_L);
+    *ticks |= (*handle->TCNT_H) << 8U;
     return ret;
 }
 
 timer_error_t timer_16_bit_set_ocra_register_value(uint8_t id, const uint16_t * const ocra)
 {
     timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
+
     if (TIMER_ERROR_OK != ret)
     {
         return ret;
     }
 
-    ret = check_handle(&internal_config[id].handle);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
-
-    *(internal_config[id].handle.OCRA_H) = (*ocra & 0xFF00) >> 8U;
-    *(internal_config[id].handle.OCRA_L) = (*ocra & 0xFF);
+    *(handle->OCRA_H) = (*ocra & 0xFF00) >> 8U;
+    *(handle->OCRA_L) = (*ocra & 0xFF);
     return ret;
 }
 
 timer_error_t timer_16_bit_get_ocra_register_value(uint8_t id, uint16_t * const ocra)
 {
     timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
+
     if (TIMER_ERROR_OK != ret)
     {
         return ret;
@@ -872,39 +754,31 @@ timer_error_t timer_16_bit_get_ocra_register_value(uint8_t id, uint16_t * const 
         return TIMER_ERROR_NULL_POINTER;
     }
 
-    ret = check_handle(&internal_config[id].handle);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
-
-    *ocra  = (*internal_config[id].handle.OCRA_L);
-    *ocra |= (*internal_config[id].handle.OCRA_H << 8U);
+    *ocra  = (*handle->OCRA_L);
+    *ocra |= (*handle->OCRA_H << 8U);
     return ret;
 }
 
 timer_error_t timer_16_bit_set_ocrb_register_value(uint8_t id, const uint16_t * const ocrb)
 {
     timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
+
     if (TIMER_ERROR_OK != ret)
     {
         return ret;
     }
 
-    ret = check_handle(&internal_config[id].handle);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
-
-    *internal_config[id].handle.OCRB_H = (*ocrb & 0xFF00) >> 8U;
-    *internal_config[id].handle.OCRB_L = (*ocrb & 0xFF);;
+    *handle->OCRB_H = (*ocrb & 0xFF00) >> 8U;
+    *handle->OCRB_L = (*ocrb & 0xFF);;
     return ret;
 }
 
 timer_error_t timer_16_bit_get_ocrb_register_value(uint8_t id, uint16_t * const ocrb)
 {
     timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
+
     if (TIMER_ERROR_OK != ret)
     {
         return ret;
@@ -915,21 +789,50 @@ timer_error_t timer_16_bit_get_ocrb_register_value(uint8_t id, uint16_t * const 
         return TIMER_ERROR_NULL_POINTER;
     }
 
-    ret = check_handle(&internal_config[id].handle);
+    *ocrb =  (*handle->OCRB_L);
+    *ocrb |= (*handle->OCRB_H << 8U);
+    return ret;
+}
+
+timer_error_t timer_16_bit_set_icr_register_value(uint8_t id, const uint16_t icr)
+{
+    timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
+
     if (TIMER_ERROR_OK != ret)
     {
         return ret;
     }
 
-    *ocrb =  (*internal_config[id].handle.OCRB_L);
-    *ocrb |= (*internal_config[id].handle.OCRB_H << 8U);
+    *handle->ICR_H = (icr & 0xFF00) >> 8U;
+    *handle->ICR_L = (icr & 0xFF);;
+    return ret;
+}
+
+timer_error_t timer_16_bit_get_icr_register_value(uint8_t id, uint16_t * const icr)
+{
+    timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
+
+    if (TIMER_ERROR_OK != ret)
+    {
+        return ret;
+    }
+
+    if ( NULL == icr)
+    {
+        return TIMER_ERROR_NULL_POINTER;
+    }
+
+    *icr =  (*handle->ICR_L);
+    *icr |= (*handle->ICR_H << 8U);
     return ret;
 }
 
 static timer_error_t timer_16_bit_write_config(uint8_t id, timer_16_bit_config_t * const config)
 {
     timer_error_t ret = TIMER_ERROR_OK;
-    timer_16_bit_handle_t * handle = &internal_config[id].handle;
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
 
     internal_config[id].prescaler = config->timing_config.prescaler;
 
@@ -941,7 +844,7 @@ static timer_error_t timer_16_bit_write_config(uint8_t id, timer_16_bit_config_t
     *(handle->TCNT_L) = (config->timing_config.counter & 0xFF);
 
     /* Clear TCCRA register first, otherwise we can't reconfigure the OCRA/OCRB regs!*/
-	*(handle->TCCRA) = 0;
+    *(handle->TCCRA) = 0;
 
     /* TCCRA register */
     *(handle->OCRA_H) = (config->timing_config.ocra_val & 0xFF00) >> 8U;
@@ -1046,12 +949,6 @@ timer_error_t timer_16_bit_deinit(uint8_t id)
         return ret;
     }
 
-    ret = check_handle(&internal_config[id].handle);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
-
     /* Retrieve a config object to write back default configuration into timer registers */
     timer_16_bit_config_t config;
     ret = timer_16_bit_stop(id);
@@ -1083,27 +980,15 @@ timer_error_t timer_16_bit_reconfigure(uint8_t id, timer_16_bit_config_t * const
         return TIMER_ERROR_NULL_POINTER;
     }
 
-    ret = check_handle(&config->handle);
-    if (TIMER_ERROR_OK != ret)
+    /* Stop the timer before reconfiguring it */
+    if (true == internal_config[id].is_initialised)
     {
-        return ret;
+        ret = timer_16_bit_stop(id);
+        if (TIMER_ERROR_OK != ret)
+        {
+            return ret;
+        }
     }
-
-    ret = timer_16_bit_set_handle(id, &config->handle);
-    if (TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
-
-	/* Stop the timer before reconfiguring it */
-	if (true == internal_config[id].is_initialised)
-	{
-		ret = timer_16_bit_stop(id);
-		if (TIMER_ERROR_OK != ret)
-		{
-			return ret;
-		}
-	}
 
     ret = timer_16_bit_write_config(id,config);
     if (TIMER_ERROR_OK == ret)
@@ -1118,13 +1003,9 @@ timer_error_t timer_16_bit_reconfigure(uint8_t id, timer_16_bit_config_t * const
 timer_error_t timer_16_bit_start(uint8_t id)
 {
     timer_error_t ret = check_id(id);
-    if(TIMER_ERROR_OK != ret)
-    {
-        return ret;
-    }
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
 
-    ret = check_handle(&internal_config[id].handle);
-    if (TIMER_ERROR_OK != ret)
+    if(TIMER_ERROR_OK != ret)
     {
         return ret;
     }
@@ -1135,13 +1016,15 @@ timer_error_t timer_16_bit_start(uint8_t id)
     }
 
     /* This time, set the prescaler to start the timer, unless prescaler is set to NO_CLOCK source */
-    *(internal_config[id].handle.TCCRB) = (*(internal_config[id].handle.TCCRB) & ~CS_MSK) | internal_config[id].prescaler;
+    *(handle->TCCRB) = (*(handle->TCCRB) & ~CS_MSK) | internal_config[id].prescaler;
     return ret;
 }
 
 timer_error_t timer_16_bit_stop(uint8_t id)
 {
     timer_error_t ret = check_id(id);
+    timer_16_bit_handle_t * handle = &timer_16_bit_static_handle[id];
+
     if(TIMER_ERROR_OK != ret)
     {
         return ret;
@@ -1153,7 +1036,7 @@ timer_error_t timer_16_bit_stop(uint8_t id)
     }
 
     /* Reset prescaler to NO_CLOCK*/
-    *(internal_config[id].handle.TCCRB) = (*(internal_config[id].handle.TCCRB) & ~CS_MSK) | TIMER16BIT_CLK_NO_CLOCK;
+    *(handle->TCCRB) = (*(handle->TCCRB) & ~CS_MSK) | TIMER16BIT_CLK_NO_CLOCK;
     return ret;
 }
 

@@ -1,5 +1,5 @@
-#ifndef IOMANAGER_HEADER
-#define IOMANAGER_HEADER
+#ifndef IO_DRIVER_HEADER
+#define IO_DRIVER_HEADER
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -14,6 +14,15 @@ extern "C"
 #define IO_MAX_PINS (28U)
 #pragma message("IO_MAX_PINS macro was not defined in this compilation unit, IO_MAX_PINS will take its default size.")
 #endif
+
+typedef enum
+{
+    IO_ERROR_OK,                  /**< Operation succeeded                                          */
+    IO_ERROR_CONFIG,              /**< Configuration issues                                         */
+    IO_ERROR_ALREADY_INITIALISED, /**< Io driver was already initialised                            */
+    IO_ERROR_NOT_INITIALISED,     /**< Used to reject actions on pins if driver is not initialised  */
+    IO_ERROR_INDEX_OUT_OF_RANGE   /**< User tried to use an IO index greater than registered        */
+} io_error_t;
 
 /**
  * @brief describes a simplified interface for any
@@ -33,8 +42,14 @@ typedef enum
 */
 typedef enum
 {
-    IO_STATE_LOW = 0U,
-    IO_STATE_HIGH = 1U
+    IO_STATE_LOW =       0U,
+    IO_STATE_HIGH =      1U,
+    IO_STATE_UNDEFINED = 2U, /**< Undefined state is used by client code (drivers, modules, application) to tell IO driver to leave this pin untouched */
+                              //  This is useful when client code provides the ability to set a given pin to a predefined state when starting operation.
+                              //  For instance, the software PWM driver may initialise a given IO pin to a predefined state when PWM is not running
+                              //  to prevent hardware/electrical issues such as overheating, etc.
+                              //  In such cases, the "safe" state for a pin can be specified either by LOW or HIGH state, and sometimes we can use UNDEFINED
+                              //  state to indicate to the client code not to interact with the pin and leave it in its current state
 } io_state_t;
 
 /**
@@ -82,7 +97,7 @@ typedef struct
     io_port_config_t    portb_cfg;  /**< Port B configuration                                           */
     io_port_config_t    portc_cfg;  /**< Port C configuration                                           */
     io_port_config_t    portd_cfg;  /**< Port D configuration                                           */
-} io_config_t;
+} io_reg_config_t;
 
 /**
  * @brief the following extern symbol is a lookup table with pins configuration.
@@ -98,7 +113,7 @@ extern io_t io_pins_lut[IO_MAX_PINS];
  * Further calls to those addresses (e.g. while reading or writing to a pin)
  * will normally by optimized by the compiler as direct calls afterwards (no pointer dereferencing then)
 */
-extern io_config_t io_config;
+extern io_reg_config_t io_reg_config;
 
 /**
  * @brief reads data on a given io, using its index as an input (referencing an
@@ -108,7 +123,7 @@ extern io_config_t io_config;
  *      true    : pin is set (high logic level)
  *      false   : pin is not set (low logic level)
 */
-io_state_t io_read(const uint8_t index);
+io_error_t io_read(const uint8_t index, io_state_t * const state);
 
 /**
  * @brief writes data to a single pin, using its index (from the lookup table)
@@ -116,16 +131,30 @@ io_state_t io_read(const uint8_t index);
  * in case where the pin is set as an input and that you write to it, you may change the pin configuration !
  * @param[in] index : index of the pin in the lookup table
  * @param[in] state : new state of the pin
+ * @return
+ *      IO_ERROR_OK                 : operation succeeded
+ *      IO_ERROR_CONFIG             : input state is still set to undefined, that's a config issue
+ *      IO_ERROR_INDEX_OUT_OF_RANGE : given index is greater than registered IO_MAX_PINS macro
 */
-void io_write(const uint8_t index, const io_state_t state);
+io_error_t io_write(const uint8_t index, const io_state_t state);
 
 /**
  * @brief configures all registered pins and give them default state, if any
 */
-void io_init(void);
+io_error_t io_init(void);
+
+/**
+ * @brief Reverts all previously configured pins as being high impedance inputs
+ */
+io_error_t io_deinit(void);
+
+/**
+ * @brief Checks if IO driver was initialised
+ */
+bool io_is_initialised(void);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* IOMANAGER_HEADER */
+#endif /* IO_DRIVER_HEADER */
