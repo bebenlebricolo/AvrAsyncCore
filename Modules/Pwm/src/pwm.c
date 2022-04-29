@@ -24,13 +24,20 @@
 */
 static struct
 {
-    uint16_t period;        /**< Gives the time period in ticks for a single software PWM                           */
-    uint16_t switch_tick;   /**< Used to implement duty cycle and events.                                           */
-                            //   The switch tick indicates when a pin has to change its state                       */
-    uint16_t last_tick;     /**< Holds the last tick retrieved from timebase module                                 */
-    uint16_t start_tick;    /**< Holds the start tick of the current frame/period retrieved from timebase module    */
-    io_state_t state;       /**< Records the current IO state, so that we can keep track of the duty cycle as well  */
-    bool started;           /**< Records if a specific software pwm is started or not                               */
+    uint16_t period;                    /**< Gives the time period in ticks for a single software PWM                           */
+    uint16_t switch_tick;               /**< Used to implement duty cycle and events.                                           */
+                                        //   The switch tick indicates when a pin has to change its state                       */
+    uint16_t last_tick;                 /**< Holds the last tick retrieved from timebase module                                 */
+    uint16_t start_tick;                /**< Holds the start tick of the current frame/period retrieved from timebase module    */
+    io_state_t state;                   /**< Records the current IO state, so that we can keep track of the duty cycle as well  */
+    bool started;                       /**< Records if a specific software pwm is started or not                               */
+    struct
+    {
+        pwm_soft_event_callback_t rising_edge;  /**< Rising edge event  */
+        pwm_soft_event_callback_t falling_edge; /**< Falling edge event */
+        pwm_soft_event_callback_t toggling;     /**< Toggled pin event  */
+        pwm_soft_event_callback_t reset;        /**< Counter reset event*/
+    } events;
 } soft_config[PWM_MAX_SOFT_INSTANCES] = {0};
 
 
@@ -328,6 +335,7 @@ pwm_error_t pwm_config_single(const uint8_t index, const pwm_type_t type, pwm_pr
 
         }
     }
+    // Software based PWM
     else
     {
         pwm_soft_static_config_t * timer_config = &pwm_config.soft[index];
@@ -344,12 +352,22 @@ pwm_error_t pwm_config_single(const uint8_t index, const pwm_type_t type, pwm_pr
         {
             ret = PWM_ERROR_CONFIG;
         }
+        uint16_t period = 0;
+
+        if(PWM_ERROR_OK == ret)
+        {
+            timberr = timebase_compute_period_from_frequency(timer_config->timebase_index, properties->frequency, TIMEBASE_FREQUENCY_HZ, &period);
+            if(TIMEBASE_ERROR_OK != timberr || false == timebase_initialised)
+            {
+                ret = PWM_ERROR_CONFIG;
+            }
+        }
 
         // Transaction with IO driver and Timebase Module are validated, we can now start to work with the registered pin.
         if (PWM_ERROR_OK == ret)
         {
-            soft_config[index].period = properties->frequency;
-            soft_config[index].switch_tick = properties->duty_cycle;
+            soft_config[index].period = period;
+            soft_config[index].switch_tick = (properties->duty_cycle * period) / 100U;
         }
     }
 
@@ -1001,6 +1019,78 @@ pwm_error_t pwm_hard_config_complementary(pwm_hard_compl_config_t const * const 
     return PWM_ERROR_NOT_IMPLEMENTED;
 }
 
+static inline pwm_error_t process_soft_end_of_period(const uint8_t index)
+{
+    soft_config[index].start_tick = soft_config[index].last_tick;
+
+    io_error_t ioerr = io_write(pwm_config.soft[index].io_index, pwm_config.soft[index].safe_state);
+    if(IO_ERROR_OK != ioerr)
+    {
+        return PWM_ERROR_IO_ISSUE;
+    }
+
+    // Generate the reset event
+    if(NULL != soft_config[index].events.reset)
+    {
+        soft_config[index].events.reset();
+    }
+
+    // Call the toggling event as well (we're changing state !)
+    if(NULL != soft_config[index].events.toggling)
+    {
+        soft_config[index].events.toggling();
+    }
+
+    return PWM_ERROR_OK;;
+}
+
+static inline pwm_error_t process_soft_toggling(const uint8_t index)
+{
+    pwm_error_t ret = PWM_ERROR_OK;
+    // If starting safe state matches last updated state, it means we are still on the 'left' part of the PWM cycle
+    // So we need to operate the transition
+    if(pwm_config.soft[index].safe_state == soft_config[index].state)
+    {
+        // Update last_tick
+        soft_config[index].start_tick = soft_config[index].last_tick;
+        io_error_t ioerr = IO_ERROR_OK;
+        if(IO_STATE_LOW == soft_config[index].state)
+        {
+            ioerr = io_write(pwm_config.soft[index].io_index, IO_STATE_HIGH);
+
+            // Generate event
+            if(IO_ERROR_OK == ioerr && NULL != soft_config[index].events.rising_edge)
+            {
+                soft_config[index].events.rising_edge();
+            }
+        }
+        else
+        {
+            ioerr = io_write(pwm_config.soft[index].io_index, IO_STATE_LOW);
+
+            // Generate event
+            if(IO_ERROR_OK == ioerr && NULL != soft_config[index].events.falling_edge)
+            {
+                soft_config[index].events.falling_edge();
+            }
+        }
+
+        // Global IOError check
+        if(IO_ERROR_OK != ioerr)
+        {
+            ret = PWM_ERROR_IO_ISSUE;
+        }
+        else
+        {
+            // Call the toggling event as well (we're changing state !)
+            if(NULL != soft_config[index].events.toggling)
+            {
+                soft_config[index].events.toggling();
+            }
+        }
+    }
+    return ret;
+}
 
 pwm_error_t pwm_process(void)
 {
@@ -1021,20 +1111,34 @@ pwm_error_t pwm_process(void)
             if (TIMEBASE_ERROR_OK != timberr)
             {
                 ret = PWM_ERROR_TIMEBASE_ISSUE;
-                break;
+                continue;
             }
 
             timberr = timebase_get_duration(&soft_config[index].start_tick, &soft_config[index].last_tick, &duration);
             if (TIMEBASE_ERROR_OK != timberr)
             {
                 ret = PWM_ERROR_TIMEBASE_ISSUE;
-                break;
+                continue;
             }
 
+            // We reached the end of the current period, it's time to start a new one !
+            if(duration >= soft_config[index].period)
+            {
+                ret = process_soft_end_of_period(index);
+                continue;
+            }
 
+            // We are now in the 'right' part of the PWM, there's is probably some work to do !
+            if(duration >= soft_config[index].switch_tick)
+            {
+                ret = process_soft_toggling(index);
+                continue;
+            }
         }
     }
 
+    // Because of the above code structure, a single error case in ret will be caught and brought back
+    // to calling layer for error handling
     return ret;
 }
 
@@ -1047,4 +1151,88 @@ static inline bool index_valid(const uint8_t index, const pwm_type_t type)
         return index < PWM_MAX_HARD_INSTANCES;
     }
     return index < PWM_MAX_SOFT_INSTANCES;
+}
+
+
+pwm_error_t pwm_soft_register_event(const uint8_t index, const pwm_soft_event_callback_t callback, const pwm_soft_event_t when)
+{
+    if(false == index_valid(index, PWM_TYPE_SOFTWARE))
+    {
+        return PWM_ERROR_INDEX_OUT_OF_RANGE;
+    }
+
+    pwm_error_t ret = PWM_ERROR_OK;
+    switch(when)
+    {
+        case PWM_SOFT_EVENT_FALLING_EDGE:
+            soft_config[index].events.falling_edge = callback;
+            break;
+
+        case PWM_SOFT_EVENT_TOGGLED:
+            soft_config[index].events.toggling = callback;
+            break;
+
+        case PWM_SOFT_EVENT_RESET:
+            soft_config[index].events.reset = callback;
+            break;
+
+        case PWM_SOFT_EVENT_RISING_EDGE:
+            soft_config[index].events.rising_edge = callback;
+            break;
+
+        default:
+            ret = PWM_ERROR_CONFIG;
+            break;
+    }
+
+    return ret;
+}
+
+pwm_error_t pwm_soft_remove_event(const uint8_t index, const pwm_soft_event_t when)
+{
+    if(false == index_valid(index, PWM_TYPE_SOFTWARE))
+    {
+        return PWM_ERROR_INDEX_OUT_OF_RANGE;
+    }
+
+    pwm_error_t ret = PWM_ERROR_OK;
+    switch(when)
+    {
+        case PWM_SOFT_EVENT_FALLING_EDGE:
+            soft_config[index].events.falling_edge = NULL;
+            break;
+
+        case PWM_SOFT_EVENT_TOGGLED:
+            soft_config[index].events.toggling = NULL;
+            break;
+
+        case PWM_SOFT_EVENT_RESET:
+            soft_config[index].events.reset = NULL;
+            break;
+
+        case PWM_SOFT_EVENT_RISING_EDGE:
+            soft_config[index].events.rising_edge = NULL;
+            break;
+
+        default:
+            ret = PWM_ERROR_CONFIG;
+            break;
+    }
+
+    return ret;
+}
+
+pwm_error_t pwm_soft_clear_all_events(const uint8_t index)
+{
+    if(false == index_valid(index, PWM_TYPE_SOFTWARE))
+    {
+        return PWM_ERROR_INDEX_OUT_OF_RANGE;
+    }
+
+    soft_config[index].events.falling_edge = NULL;
+    soft_config[index].events.rising_edge = NULL;
+    soft_config[index].events.toggling = NULL;
+    soft_config[index].events.reset = NULL;
+
+    return PWM_ERROR_OK;
 }

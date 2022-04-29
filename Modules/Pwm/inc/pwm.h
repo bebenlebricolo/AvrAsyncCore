@@ -105,6 +105,24 @@ typedef struct
     pwm_soft_static_config_t soft[PWM_MAX_SOFT_INSTANCES];  /**< Encodes the software static configuration */
 } pwm_static_config_t;
 
+
+// ################################################################################################
+// ########################### Software based PWM event generation#################################
+// ################################################################################################
+
+typedef void (*pwm_soft_event_callback_t)(void);
+
+/**
+ * @brief Describes the various events supported by the software based PWM generation mode
+ */
+typedef enum
+{
+    PWM_SOFT_EVENT_RISING_EDGE, /**< Event is generated when PWM signal goes from low state to high state (rising edge)     */
+    PWM_SOFT_EVENT_FALLING_EDGE,/**< Event is generated when PWM signal goes from high state to low state (falling edge)    */
+    PWM_SOFT_EVENT_RESET,       /**< Event is generated when a single PWM period is achieved (when the PWM resets)          */
+    PWM_SOFT_EVENT_TOGGLED,     /**< Event is generated when PWM signal changes states (either Falling/Rising edge), covers the 3 above cases. */
+} pwm_soft_event_t;
+
 /**
  * @brief Encodes the various kind of TOP value used by a hardware timer counter to set the resolution (impacts frequency as well)
  * They are essentially used by this PWM driver to configure Timer registers when configuring resolution and frequency.
@@ -288,6 +306,40 @@ pwm_error_t pwm_get_actual_props(const uint8_t index, const pwm_type_t type, pwm
  */
 pwm_error_t pwm_hard_config_complementary(pwm_hard_compl_config_t const * const config, const uint32_t * clock_freq );
 
+/**
+ * @brief Configures a single event for the targeted software PWM
+ *
+ * @param[in] index     : index of targeted software PWM as per configured in static configuration (@see pwm_config.soft)
+ * @param[in] callback  : callback function which will be called when the event is reached
+ * @param[in] when      : on what kind of event the callback should be registered
+ * @return pwm_error_t
+ *      PWM_ERR_OK                      : operation succeeded
+ *      PWM_ERROR_CONFIG                : input do not make sense (probably and issue with the "when" parameter)
+ *      PWM_ERROR_INDEX_OUT_OF_RANGE    : targeted index is out of range
+ */
+pwm_error_t pwm_soft_register_event(const uint8_t index, const pwm_soft_event_callback_t callback, const pwm_soft_event_t when);
+
+/**
+ * @brief Pops a single event from a software pwm instance
+ *
+ * @param index : index of targeted software PWM as per configured in static configuration (@see pwm_config.soft)
+ * @param when  : what kind of event should be cleared
+ * @return pwm_error_t
+ *      PWM_ERR_OK                      : operation succeeded
+ *      PWM_ERROR_INDEX_OUT_OF_RANGE    : targeted index is out of range
+ *      PWM_ERROR_CONFIG                : input do not make sense (probably and issue with the "when" parameter)
+ */
+pwm_error_t pwm_soft_remove_event(const uint8_t index, const pwm_soft_event_t when);
+
+/**
+ * @brief Removes all events at once for a single software PWM instance
+ *
+ * @param index
+ * @return pwm_error_t
+ *      PWM_ERR_OK                      : operation succeeded
+ *      PWM_ERROR_INDEX_OUT_OF_RANGE    : targeted index is out of range
+ */
+pwm_error_t pwm_soft_clear_all_events(const uint8_t index);
 
 // Static configuration for both software based and hardware based pwms
 extern pwm_static_config_t pwm_config; /** Static compile-time configuration used by this driver (needs to be implemented in config.c)*/

@@ -2,3 +2,4 @@
 *.vscode/
 *.vs/
 *.autosave*
+*.code-workspace
