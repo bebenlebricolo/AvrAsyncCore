@@ -55,6 +55,7 @@ typedef enum
     TIMEBASE_ERROR_UNSUPPORTED_TIMER_TYPE,  /**< Given timer type is not compatible with timer_arch_t enum      */
     TIMEBASE_ERROR_UNSUPPORTED_TIMESCALE,   /**< Given timescale is not relevant to timebase module             */
 
+    TIMEBASE_ERROR_FREQUENCY_TOO_HIGH,      /**< Targeted timebase instance could not implement given frequency */
     TIMEBASE_ERROR_TIMER_UNINITIALISED,     /**< Underlying timer is not initialised                            */
     TIMEBASE_ERROR_TIMER_ERROR,             /**< Encountered an error while using underlying timer driver       */
 } timebase_error_t;
@@ -70,6 +71,18 @@ typedef enum
     TIMEBASE_TIMESCALE_SECONDS,         /**< Second timescale                                                                       */
     TIMEBASE_TIMESCALE_CUSTOM,          /**< Custom timescale, allows to use a custom configuration to handle timebase generation   */
 } timebase_timescale_t;
+
+/**
+ * @brief Packs frequencies base units.
+ * @details This enum is quite strange but allows us to calculate timebase ticks periods for frequencies that are lower than 1 Hz.
+ * Amongst other things, it prevents from using floating point arithmetics (which is heavy) and allows us to
+ * Generate very slow events, that could make sense from a pure timing point of view.
+ */
+typedef enum
+{
+    TIMEBASE_FREQUENCY_HZ,       /**< Default Hz unit for frequencies   */
+    TIMEBASE_FREQUENCY_MILLI_HZ, /**< Quite weird to see this, but that's the only way we can calculate periods for frequencies that are lower than 1 HZ */
+} timebase_frequency_t;
 
 /**
  * @brief Initialisation structure
@@ -178,6 +191,19 @@ timebase_error_t timebase_get_duration_now(const uint8_t id, uint16_t const * co
  * @param[in]  id : index of targeted timebase module
 */
 void timebase_interrupt_callback(const uint8_t id);
+
+/**
+ * @brief Computes a time period (in ticks) for a specific instance of Timebase, using the desired frequency parameter as
+ * the main input.
+ *
+ * @param[in] id         : id of the targeted timebase instance (holds the information about its own timepace)
+ * @param[in] frequency  : input absolute frequency to be converted into an amount of ticks from that timebase
+ * @param[out] period    : output period calculated in ticks of this specific timebase instance
+ * * @return
+ *          TIMEBASE_ERROR_OK               :   operation succeeded
+ *          TIMEBASE_ERROR_INVALID_INDEX    :   given module id is out of bounds
+ */
+timebase_error_t timebase_compute_period_from_frequency(const uint8_t id, uint32_t const * const frequency, const timebase_frequency_t funit, uint16_t * const period);
 
 /**
  * @brief Encodes the static configuration used by this module

@@ -37,9 +37,10 @@ typedef enum
 {
     PWM_ERROR_OK = 0,               /**< Operation succeeded, no issues                 */
     PWM_ERROR_CONFIG,               /**< Something is wrong with the configuration      */
-    PWM_ERROR_TIMEBASE_ISSUE,       /**< Software timebase has encountered some errors  */
+    PWM_ERROR_IO_ISSUE,             /**< Error caught when communicating with IO driver */
     PWM_ERROR_TIMER_ISSUE,          /**< Timer drivers encountered some errors          */
-    PWM_ERROR_INDEX_OUT_OF_RANGE,    /**< Given pwm instance index is out of range       */
+    PWM_ERROR_TIMEBASE_ISSUE,       /**< Software timebase has encountered some errors  */
+    PWM_ERROR_INDEX_OUT_OF_RANGE,   /**< Given pwm instance index is out of range       */
     PWM_ERROR_NOT_IMPLEMENTED       /**< Specific function is not implemented (yet)     */
 } pwm_error_t;
 

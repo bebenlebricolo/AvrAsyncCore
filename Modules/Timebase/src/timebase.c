@@ -368,6 +368,56 @@ void timebase_interrupt_callback(const uint8_t timebase_id)
     }
 }
 
+timebase_error_t timebase_compute_period_from_frequency(const uint8_t id, uint32_t const * const frequency, const timebase_frequency_t funit, uint16_t * const period)
+{
+    uint32_t calculated_period = 0;
+    uint16_t multiplicator = 1;
+    if(TIMEBASE_FREQUENCY_MILLI_HZ == funit)
+    {
+        // Note, having this kind of multiplication happening at runtime is not performant at all,
+        // However, even for small avr chips it does not seem too bad (gcc quickly calls for __udivmodsi4, __mulis3, etc..)
+        // And it happens only at configuration time, it won't impede runtime performances
+        multiplicator = 1000U;
+    }
+
+    switch(timebase_static_config[id].timescale)
+    {
+        // Timebase in seconds needs special handling because frequency parameter is in Hertz,
+        // So if we want to achieve lower frequencies than 1Hz, we need to use a different strategy
+        case TIMEBASE_TIMESCALE_SECONDS:
+            calculated_period = multiplicator * 1U / *frequency ;
+            break;
+
+        case TIMEBASE_TIMESCALE_MILLISECONDS:
+            calculated_period = multiplicator * 1000U / *frequency;
+            break;
+
+        case TIMEBASE_TIMESCALE_MICROSECONDS:
+            calculated_period = multiplicator * 1000000U / *frequency ;
+            break;
+
+        case TIMEBASE_TIMESCALE_CUSTOM:
+            calculated_period = multiplicator * timebase_static_config[id].custom_target_freq / *frequency;
+            break;
+
+        // Should never get there
+        case TIMEBASE_TIMESCALE_UNDEFINED:
+        default:
+            return TIMEBASE_ERROR_UNSUPPORTED_TIMESCALE;
+    }
+
+    // If we reach 0, it means we cannot achieve the required frequency
+    if(calculated_period <= 1)
+    {
+        return TIMEBASE_ERROR_FREQUENCY_TOO_HIGH;
+    }
+
+    *period = (uint16_t) calculated_period;
+
+    return TIMEBASE_ERROR_OK;
+}
+
+
 timebase_error_t timebase_deinit(const uint8_t id)
 {
     if (false == is_index_valid(id))

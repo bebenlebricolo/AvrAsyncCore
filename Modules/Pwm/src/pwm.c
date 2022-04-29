@@ -24,12 +24,13 @@
 */
 static struct
 {
-    uint32_t frequency;     /**< Initial frequency of this Pwm module instance          */
-    uint8_t duty_cycle;     /**< Initial duty cycle of this Pwm module instance         */
-
-    uint16_t last_tick;     /**< Holds the last tick retrieved from timebase module     */
-    uint16_t start_tick;    /**< Holds the start tick retrieved from timebase module    */
-    bool started;           /**< Records if a specific software pwm is started or not   */
+    uint16_t period;        /**< Gives the time period in ticks for a single software PWM                           */
+    uint16_t switch_tick;   /**< Used to implement duty cycle and events.                                           */
+                            //   The switch tick indicates when a pin has to change its state                       */
+    uint16_t last_tick;     /**< Holds the last tick retrieved from timebase module                                 */
+    uint16_t start_tick;    /**< Holds the start tick of the current frame/period retrieved from timebase module    */
+    io_state_t state;       /**< Records the current IO state, so that we can keep track of the duty cycle as well  */
+    bool started;           /**< Records if a specific software pwm is started or not                               */
 } soft_config[PWM_MAX_SOFT_INSTANCES] = {0};
 
 
@@ -193,6 +194,32 @@ pwm_error_t pwm_start(const uint8_t index, const pwm_type_t type)
     if( PWM_TYPE_SOFTWARE == type)
     {
         // Start software PWM
+        pwm_soft_static_config_t * config = &pwm_config.soft[index];
+        timebase_error_t timberr = TIMEBASE_ERROR_OK;
+        io_error_t ioerr = IO_ERROR_OK;
+
+        ioerr = io_write(config->io_index, config->safe_state);
+        if(IO_ERROR_OK != ioerr)
+        {
+            ret = PWM_ERROR_IO_ISSUE;
+        }
+
+        // Handling timebase module interaction
+        if(PWM_ERROR_OK == ret)
+        {
+            uint16_t tick = 0;
+            timberr = timebase_get_tick(config->timebase_index, &tick);
+            if(TIMEBASE_ERROR_OK != timberr)
+            {
+                ret = PWM_ERROR_TIMEBASE_ISSUE;
+            }
+            else
+            {
+                soft_config[index].start_tick = tick;
+                soft_config[index].last_tick = tick;
+                soft_config[index].started = true;
+            }
+        }
     }
     else
     {
@@ -309,10 +336,20 @@ pwm_error_t pwm_config_single(const uint8_t index, const pwm_type_t type, pwm_pr
         {
             ret = PWM_ERROR_CONFIG;
         }
-        else
+
+        // Same, reject timebase misinitialisation as well
+        bool timebase_initialised = false;
+        timebase_error_t timberr = timebase_is_initialised(timer_config->timebase_index, &timebase_initialised);
+        if(TIMEBASE_ERROR_OK != timberr || false == timebase_initialised)
         {
-            soft_config[index].frequency = properties->frequency;
-            soft_config[index].duty_cycle = properties->duty_cycle;
+            ret = PWM_ERROR_CONFIG;
+        }
+
+        // Transaction with IO driver and Timebase Module are validated, we can now start to work with the registered pin.
+        if (PWM_ERROR_OK == ret)
+        {
+            soft_config[index].period = properties->frequency;
+            soft_config[index].switch_tick = properties->duty_cycle;
         }
     }
 
@@ -968,11 +1005,35 @@ pwm_error_t pwm_hard_config_complementary(pwm_hard_compl_config_t const * const 
 pwm_error_t pwm_process(void)
 {
     pwm_error_t ret = PWM_ERROR_OK;
+    io_error_t ioerr = IO_ERROR_OK;
+    timebase_error_t timberr = TIMEBASE_ERROR_OK;
+    uint16_t duration = 0;
+    uint8_t timebase_index = 0;
 
     // Nothing to do for the hardware part, this is already automatically handled
     // by the timers themselves.
+    for(uint8_t index = 0 ; index < PWM_MAX_SOFT_INSTANCES; index++)
+    {
+        if(true == soft_config[index].started)
+        {
+            timebase_index = pwm_config.soft[index].timebase_index;
+            timberr = timebase_get_tick(timebase_index, &soft_config[index].last_tick);
+            if (TIMEBASE_ERROR_OK != timberr)
+            {
+                ret = PWM_ERROR_TIMEBASE_ISSUE;
+                break;
+            }
+
+            timberr = timebase_get_duration(&soft_config[index].start_tick, &soft_config[index].last_tick, &duration);
+            if (TIMEBASE_ERROR_OK != timberr)
+            {
+                ret = PWM_ERROR_TIMEBASE_ISSUE;
+                break;
+            }
 
 
+        }
+    }
 
     return ret;
 }

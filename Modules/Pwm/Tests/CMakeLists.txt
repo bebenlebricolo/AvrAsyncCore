@@ -34,6 +34,8 @@ add_executable(pwm_module_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/Stubs/timer_8_bit_stub.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Stubs/timer_16_bit_stub.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Stubs/config.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Stubs/io_stub.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Stubs/timebase_stub.c
 )
 
 target_include_directories(pwm_module_tests PUBLIC

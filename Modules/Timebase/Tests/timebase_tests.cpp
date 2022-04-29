@@ -296,6 +296,55 @@ TEST_F(TimebaseModule8BitInitialised, test_ticks_and_durations)
     ASSERT_EQ(duration,((uint32_t) (timebase_internal_config[0U].tick) + USHRT_MAX) - (uint32_t) reference);
 }
 
+TEST_F(TimebaseModule8BitInitialised, test_period_from_frequency_calculations)
+{
+    uint32_t frequency = 1000;
+    uint16_t period = 0;
+    timebase_error_t err = TIMEBASE_ERROR_OK;
+    err = timebase_compute_period_from_frequency(0U, &frequency, TIMEBASE_FREQUENCY_HZ, &period);
+    ASSERT_EQ(err, TIMEBASE_ERROR_FREQUENCY_TOO_HIGH);
+    ASSERT_EQ(period, 0);
+
+    timebase_static_config[0].clock_freq = 16'000'000;
+    timebase_static_config[0].timescale = TIMEBASE_TIMESCALE_MICROSECONDS;
+    timebase_static_config[0].timer.type = TIMER_ARCH_8_BIT;
+    timebase_static_config[0].timer.index = 0U;
+
+    err = timebase_init(0U);
+    ASSERT_EQ(err, TIMEBASE_ERROR_OK);
+    err = timebase_compute_period_from_frequency(0U, &frequency, TIMEBASE_FREQUENCY_HZ, &period);
+    ASSERT_EQ(err, TIMEBASE_ERROR_OK);
+    ASSERT_EQ(period, 1000U);
+
+    // What about singing a song ?
+    frequency = 440;
+    err = timebase_compute_period_from_frequency(0U, &frequency, TIMEBASE_FREQUENCY_HZ, &period);
+    ASSERT_EQ(err, TIMEBASE_ERROR_OK);
+    ASSERT_EQ(period, 2272);
+
+    frequency = 880;
+    err = timebase_compute_period_from_frequency(0U, &frequency, TIMEBASE_FREQUENCY_HZ, &period);
+    ASSERT_EQ(err, TIMEBASE_ERROR_OK);
+    ASSERT_EQ(period, 1136);
+
+    // Trying with custom frequencies as well
+    timebase_static_config[0].timescale = TIMEBASE_TIMESCALE_CUSTOM;
+    timebase_static_config[0].custom_target_freq = 44'000UL;
+    err = timebase_init(0U);
+    ASSERT_EQ(err, TIMEBASE_ERROR_OK);
+
+    frequency = 880;
+    err = timebase_compute_period_from_frequency(0U, &frequency, TIMEBASE_FREQUENCY_HZ, &period);
+    ASSERT_EQ(err, TIMEBASE_ERROR_OK);
+    ASSERT_EQ(period, 50);
+
+    // Highest pitched 'E' hearable by humans
+    frequency = 21'098;
+    err = timebase_compute_period_from_frequency(0U, &frequency, TIMEBASE_FREQUENCY_HZ, &period);
+    ASSERT_EQ(err, TIMEBASE_ERROR_OK);
+    ASSERT_EQ(period, 2);
+}
+
 
 int main(int argc, char **argv)
 {
