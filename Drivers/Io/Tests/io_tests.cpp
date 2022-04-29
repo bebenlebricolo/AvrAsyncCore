@@ -32,9 +32,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "io.h"
 #include "config.h"
 
-TEST(io_driver, test_init)
+class IoDriverTests : public ::testing::Test
 {
-    io_init();
+public :
+    void SetUp() override
+    {
+    }
+
+    void TearDown() override
+    {
+        memset(get_stubbed_registers(), 0, sizeof(stubbed_registers_t));
+        (void) io_deinit();
+    }
+};
+
+TEST_F(IoDriverTests, test_init)
+{
+    io_error_t err = io_init();
+    ASSERT_EQ(IO_ERROR_OK, err);
     auto stubs = get_stubbed_registers();
     ASSERT_EQ(stubs->st_mcucr, 0);
 
@@ -53,29 +68,59 @@ TEST(io_driver, test_init)
     ASSERT_EQ(stubs->st_portd.st_port_reg, (uint8_t)(1 << 5U));
     ASSERT_EQ(stubs->st_portd.st_pin_reg, 0);
     ASSERT_EQ(stubs->st_portd.st_ddr_reg, 1 << 5U | 1 << 1U);
+
+    ASSERT_TRUE(io_is_initialised());
 }
 
-TEST(io_driver, test_read)
+TEST_F(IoDriverTests, test_deinit)
 {
-    io_init();
+    io_error_t err = io_init();
+    ASSERT_EQ(IO_ERROR_OK, err);
+    ASSERT_TRUE(io_is_initialised());
+
+    err = io_deinit();
+    ASSERT_FALSE(io_is_initialised());
+}
+
+TEST_F(IoDriverTests, test_read)
+{
+    io_state_t state = IO_STATE_UNDEFINED;
+    io_error_t err = IO_ERROR_OK;
+    err = io_read(PIN_POWER_SWITCH, &state);
+    ASSERT_EQ(IO_ERROR_NOT_INITIALISED, err);
+
+    err = io_init();
+    ASSERT_EQ(IO_ERROR_OK, err);
     auto stubs = get_stubbed_registers();
     stubs->st_portc.st_pin_reg |= 0xF0;
 
-    auto state = io_read(PIN_POWER_SWITCH);
+    // Check out of range detection
+    err = io_read(IO_MAX_PINS, &state);
+    ASSERT_EQ(IO_ERROR_INDEX_OUT_OF_RANGE, err);
+
+    err = io_read(PIN_POWER_SWITCH, &state);
     ASSERT_EQ(state, IO_STATE_LOW);
+    ASSERT_EQ(IO_ERROR_OK, err);
 
     stubs->st_portc.st_pin_reg |= (1 << 3U);
-    state = io_read(PIN_POWER_SWITCH);
+    err = io_read(PIN_POWER_SWITCH, &state);
     ASSERT_EQ(state, IO_STATE_HIGH);
+    ASSERT_EQ(IO_ERROR_OK, err);
 
     stubs->st_portc.st_pin_reg &= ~(1 << 3U);
-    state = io_read(PIN_POWER_SWITCH);
+    err = io_read(PIN_POWER_SWITCH, &state);
     ASSERT_EQ(state, IO_STATE_LOW);
+    ASSERT_EQ(IO_ERROR_OK, err);
 }
 
-TEST(io_driver, test_write)
+TEST_F(IoDriverTests, test_write)
 {
-    io_init();
+    io_error_t err = IO_ERROR_OK;
+    err = io_write(PIN_POWER_SWITCH, IO_STATE_HIGH);
+    ASSERT_EQ(IO_ERROR_NOT_INITIALISED, err);
+
+    err = io_init();
+    ASSERT_EQ(IO_ERROR_OK, err);
     auto stubs = get_stubbed_registers();
     ASSERT_EQ(stubs->st_portb.st_port_reg, 0x2);
 

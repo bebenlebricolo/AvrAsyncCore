@@ -15,6 +15,15 @@ extern "C"
 #pragma message("IO_MAX_PINS macro was not defined in this compilation unit, IO_MAX_PINS will take its default size.")
 #endif
 
+typedef enum
+{
+    IO_ERROR_OK,                  /**< Operation succeeded                                          */
+    IO_ERROR_CONFIG,              /**< Configuration issues                                         */
+    IO_ERROR_ALREADY_INITIALISED, /**< Io driver was already initialised                            */
+    IO_ERROR_NOT_INITIALISED,     /**< Used to reject actions on pins if driver is not initialised  */
+    IO_ERROR_INDEX_OUT_OF_RANGE   /**< User tried to use an IO index greater than registered        */
+} io_error_t;
+
 /**
  * @brief describes a simplified interface for any
  * given pin to be configured (using enums instead of plain registers)
@@ -114,7 +123,7 @@ extern io_reg_config_t io_reg_config;
  *      true    : pin is set (high logic level)
  *      false   : pin is not set (low logic level)
 */
-io_state_t io_read(const uint8_t index);
+io_error_t io_read(const uint8_t index, io_state_t * const state);
 
 /**
  * @brief writes data to a single pin, using its index (from the lookup table)
@@ -122,13 +131,27 @@ io_state_t io_read(const uint8_t index);
  * in case where the pin is set as an input and that you write to it, you may change the pin configuration !
  * @param[in] index : index of the pin in the lookup table
  * @param[in] state : new state of the pin
+ * @return
+ *      IO_ERROR_OK                 : operation succeeded
+ *      IO_ERROR_CONFIG             : input state is still set to undefined, that's a config issue
+ *      IO_ERROR_INDEX_OUT_OF_RANGE : given index is greater than registered IO_MAX_PINS macro
 */
-void io_write(const uint8_t index, const io_state_t state);
+io_error_t io_write(const uint8_t index, const io_state_t state);
 
 /**
  * @brief configures all registered pins and give them default state, if any
 */
-void io_init(void);
+io_error_t io_init(void);
+
+/**
+ * @brief Reverts all previously configured pins as being high impedance inputs
+ */
+io_error_t io_deinit(void);
+
+/**
+ * @brief Checks if IO driver was initialised
+ */
+bool io_is_initialised(void);
 
 #ifdef __cplusplus
 }

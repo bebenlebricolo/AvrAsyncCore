@@ -29,6 +29,7 @@ static struct
 
     uint16_t last_tick;     /**< Holds the last tick retrieved from timebase module     */
     uint16_t start_tick;    /**< Holds the start tick retrieved from timebase module    */
+    bool started;           /**< Records if a specific software pwm is started or not   */
 } soft_config[PWM_MAX_SOFT_INSTANCES] = {0};
 
 
@@ -82,6 +83,10 @@ static inline bool index_valid(const uint8_t index, const pwm_type_t type);
 pwm_error_t pwm_init(void)
 {
     pwm_error_t err = PWM_ERROR_OK;
+
+    // Check IO Driver is initialised
+    // And check Timebase module is initialised as well
+
 
     // Iterate over pwm_config and search hard configurations
     for (uint8_t i = 0 ; i < PWM_MAX_HARD_INSTANCES ; i++)
@@ -298,8 +303,17 @@ pwm_error_t pwm_config_single(const uint8_t index, const pwm_type_t type, pwm_pr
     }
     else
     {
-        soft_config[index].frequency = properties->frequency;
-        soft_config[index].duty_cycle = properties->duty_cycle;
+        pwm_soft_static_config_t * timer_config = &pwm_config.soft[index];
+        io_error_t err = io_write(timer_config->io_index, timer_config->safe_state);
+        if (IO_ERROR_OK != err)
+        {
+            ret = PWM_ERROR_CONFIG;
+        }
+        else
+        {
+            soft_config[index].frequency = properties->frequency;
+            soft_config[index].duty_cycle = properties->duty_cycle;
+        }
     }
 
     return ret;
@@ -949,6 +963,20 @@ pwm_error_t pwm_hard_config_complementary(pwm_hard_compl_config_t const * const 
     (void) config;
     return PWM_ERROR_NOT_IMPLEMENTED;
 }
+
+
+pwm_error_t pwm_process(void)
+{
+    pwm_error_t ret = PWM_ERROR_OK;
+
+    // Nothing to do for the hardware part, this is already automatically handled
+    // by the timers themselves.
+
+
+
+    return ret;
+}
+
 
 
 static inline bool index_valid(const uint8_t index, const pwm_type_t type)
