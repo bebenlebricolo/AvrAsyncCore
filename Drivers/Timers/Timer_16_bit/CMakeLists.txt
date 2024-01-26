@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.20)
 
 add_library(timer_16_bit_driver STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/timer_16_bit.c

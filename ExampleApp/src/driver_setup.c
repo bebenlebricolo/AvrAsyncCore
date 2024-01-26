@@ -78,7 +78,7 @@ driver_setup_error_t driver_init_timer_0(void)
     /* Set original port state of OC0A/OC0B pins before any OCRx overrides them */
     /* This is done in opposing polarities to respect mosfet push-pull driver pair starting point*/
     OC0A_PORT_REG |= (1 << OC0A_PIN_NUMBER);
-    OC0B_PORT_REG &= ~(1 << OC0B_PIN_NUMBER);
+    //OC0B_PORT_REG &= ~(1 << OC0B_PIN_NUMBER);
 
     /* Configuring timer */
     /* F_CPU = 16'000'000 Hz ; F_TIMER0 2'000'000 Hz*/
@@ -124,7 +124,7 @@ driver_setup_error_t driver_init_timer_1(void)
     /* Set original port state of OC0A/OC0B pins before any OCRx overrides them */
     /* This is done in opposing polarities to respect mosfet push-pull driver pair starting point*/
     OC1A_PORT_REG |= (1 << OC1A_PIN_NUMBER);    // Pulled to Vcc (low side of mosfet driver pulls mosfet's gate to ground)
-    OC1B_PORT_REG &= ~(1 << OC1B_PIN_NUMBER);   // Pulled to ground (high side of mosfet driver is depleted)
+    //OC1B_PORT_REG &= ~(1 << OC1B_PIN_NUMBER);   // Pulled to ground (high side of mosfet driver is depleted)
 
     /* Configuring timer */
     /* F_CPU = 16'000'000 Hz ; F_TIMER0 2'000'000 Hz*/
@@ -168,7 +168,7 @@ driver_setup_error_t driver_init_timer_2(void)
     /* Set original port state of OC0A/OC0B pins before any OCRx overrides them */
     /* This is done in opposing polarities to respect mosfet push-pull driver pair starting point*/
     OC2A_PORT_REG |= (1 << OC2A_PIN_NUMBER);
-    OC2B_PORT_REG &= ~(1 << OC2B_PIN_NUMBER);
+    //OC2B_PORT_REG &= ~(1 << OC2B_PIN_NUMBER);
 
     /* Configuring timer */
     /* F_CPU = 16'000'000 Hz ; F_TIMER0 2'000'000 Hz*/

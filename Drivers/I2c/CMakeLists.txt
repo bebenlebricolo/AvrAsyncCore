@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.20)
 
 # Stop here as we need an extra config.h file in order to build this driver
 # This file provides symbols for the driver to work properly

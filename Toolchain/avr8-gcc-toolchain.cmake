@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.20)
 
 # see CMAKE_SYSTEM_NAME for cross compiling and Cmake system version
 if(WIN32 AND NOT CMAKE_GENERATOR STREQUAL "Unix Makefiles")

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.20)
 
 add_library(timebase_module STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/timebase.c

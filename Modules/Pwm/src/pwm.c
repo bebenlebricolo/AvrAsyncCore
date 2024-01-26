@@ -356,7 +356,7 @@ pwm_error_t pwm_config_single(const uint8_t index, const pwm_type_t type, pwm_pr
 
         if(PWM_ERROR_OK == ret)
         {
-            timberr = timebase_compute_period_from_frequency(timer_config->timebase_index, properties->frequency, TIMEBASE_FREQUENCY_HZ, &period);
+            timberr = timebase_compute_period_from_frequency(timer_config->timebase_index, &properties->frequency, TIMEBASE_FREQUENCY_HZ, &period);
             if(TIMEBASE_ERROR_OK != timberr || false == timebase_initialised)
             {
                 ret = PWM_ERROR_CONFIG;
@@ -1095,7 +1095,6 @@ static inline pwm_error_t process_soft_toggling(const uint8_t index)
 pwm_error_t pwm_process(void)
 {
     pwm_error_t ret = PWM_ERROR_OK;
-    io_error_t ioerr = IO_ERROR_OK;
     timebase_error_t timberr = TIMEBASE_ERROR_OK;
     uint16_t duration = 0;
     uint8_t timebase_index = 0;
