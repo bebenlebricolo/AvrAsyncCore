@@ -142,10 +142,10 @@ endif( NOT ( (CMAKE_BUILD_TYPE MATCHES Release) OR
   -Wextra \
   -Wno-main \
   -Wundef \
-  -pedantic \
   -Wstrict-prototypes \
   -Werror \
   -Wfatal-errors ")
+  #-pedantic \ -> Disabled for now as it prevents using the  #warning preproc macros. It can be added back when the C23 standard is out and supported by toolchains !
 
   set(COMPILER_LINKER_FORWARD_OPTIONS "-Wl,--gc-sections -Wl,--relax")
   set(FULL_OPTIONS "${COMPILE_OPTIONS} ${COMPILER_WARNINGS} ${COMPILER_LINKER_FORWARD_OPTIONS}")
