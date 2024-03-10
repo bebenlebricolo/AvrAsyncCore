@@ -291,7 +291,7 @@ pwm_error_t pwm_config_single(const uint8_t index, const pwm_type_t type, pwm_pr
  * @param[out] properties
  * @return pwm_error_t
  */
-pwm_error_t pwm_get_actual_props(const uint8_t index, const pwm_type_t type, pwm_props_t * const properties, const uint32_t * clock_freq);
+pwm_error_t pwm_probe_config(const uint8_t index, const pwm_type_t type, pwm_props_t * const properties, const uint32_t * clock_freq);
 
 /**
  * @brief Configures a particular timer to output complementary PWM with dead time generation.

@@ -82,7 +82,7 @@ public:
 
 TEST_F(PwmModuleTestSuite, test_single_hard_config)
 {
-    // Rewritting parts of pwm_config
+    // Rewriting parts of pwm_config
     pwm_config.hard[0].arch = TIMER_ARCH_8_BIT;
     pwm_config.hard[0].timer_index = 0U;
     pwm_config.hard[0].unit = PWM_HARD_TIMER_UNIT_A;
@@ -102,7 +102,7 @@ TEST_F(PwmModuleTestSuite, test_single_hard_config)
 
 TEST_F(PwmModuleTestSuite, test_single_soft_init)
 {
-    // Rewritting parts of pwm_config
+    // Rewriting parts of pwm_config
     pwm_config.soft[0].io_index = 0U;
     pwm_config.soft[0].timebase_index = 0U;
 
@@ -131,7 +131,7 @@ TEST_F(PwmModuleTestSuite, test_single_soft_init)
 
 TEST_F(PwmModuleTestSuite, single_8_bit_pwm_hard_configuration_waveforms)
 {
-    // Rewritting parts of pwm_config
+    // Rewriting parts of pwm_config
     pwm_config.hard[0].arch = TIMER_ARCH_8_BIT;
     pwm_config.hard[0].timer_index = 0U;
     pwm_config.hard[0].unit = PWM_HARD_TIMER_UNIT_A;
@@ -201,7 +201,7 @@ TEST_F(PwmModuleTestSuite, single_8_bit_pwm_hard_configuration_waveforms)
 
 TEST_F(PwmModuleTestSuite, single_8_bit_async_pwm_hard_configuration)
 {
-    // Rewritting parts of pwm_config
+    // Rewriting parts of pwm_config
     pwm_config.hard[0].arch = TIMER_ARCH_8_BIT_ASYNC;
     pwm_config.hard[0].timer_index = 0U;
     pwm_config.hard[0].unit = PWM_HARD_TIMER_UNIT_A;
@@ -271,7 +271,7 @@ TEST_F(PwmModuleTestSuite, single_8_bit_async_pwm_hard_configuration)
 
 TEST_F(PwmModuleTestSuite, single_16_bit_pwm_hard_configuration)
 {
-    // Rewritting parts of pwm_config
+    // Rewriting parts of pwm_config
     pwm_config.hard[0].arch = TIMER_ARCH_16_BIT;
     pwm_config.hard[0].timer_index = 0U;
     pwm_config.hard[0].unit = PWM_HARD_TIMER_UNIT_A;
@@ -359,7 +359,7 @@ TEST_F(PwmModuleTestSuite, single_16_bit_pwm_hard_configuration)
 
 TEST_F(PwmModule8BitTimerTestSuite, unit_a_behavioral_testing)
 {
-    // Rewritting parts of pwm_config
+    // Rewriting parts of pwm_config
     pwm_config.hard[0].arch = TIMER_ARCH_8_BIT;
     pwm_config.hard[0].timer_index = 0U;
     pwm_config.hard[0].unit = PWM_HARD_TIMER_UNIT_A;
@@ -463,7 +463,7 @@ TEST_F(PwmModule8BitTimerTestSuite, unit_a_behavioral_testing)
 
 TEST_F(PwmModule8BitTimerTestSuite, unit_b_behavioral_testing)
 {
-    // Rewritting parts of pwm_config
+    // Rewriting parts of pwm_config
     pwm_config.hard[0].arch = TIMER_ARCH_8_BIT;
     pwm_config.hard[0].timer_index = 0U;
     pwm_config.hard[0].unit = PWM_HARD_TIMER_UNIT_B;
@@ -581,7 +581,7 @@ TEST_F(PwmModule8BitTimerTestSuite, unit_b_behavioral_testing)
 
 TEST_F(PwmModule8BitAsyncTimerTestSuite, unit_a_behavioral_testing)
 {
-    // Rewritting parts of pwm_config
+    // Rewriting parts of pwm_config
     pwm_config.hard[0].arch = TIMER_ARCH_8_BIT_ASYNC;
     pwm_config.hard[0].timer_index = 0U;
     pwm_config.hard[0].unit = PWM_HARD_TIMER_UNIT_A;
@@ -685,7 +685,7 @@ TEST_F(PwmModule8BitAsyncTimerTestSuite, unit_a_behavioral_testing)
 
 TEST_F(PwmModule8BitAsyncTimerTestSuite, unit_b_behavioral_testing)
 {
-    // Rewritting parts of pwm_config
+    // Rewriting parts of pwm_config
     pwm_config.hard[0].arch = TIMER_ARCH_8_BIT_ASYNC;
     pwm_config.hard[0].timer_index = 0U;
     pwm_config.hard[0].unit = PWM_HARD_TIMER_UNIT_B;
@@ -803,7 +803,7 @@ TEST_F(PwmModule8BitAsyncTimerTestSuite, unit_b_behavioral_testing)
 
 TEST_F(PwmModule16BitTimerTestSuite, unit_a_behavioral_testing)
 {
-    // Rewritting parts of pwm_config
+    // Rewriting parts of pwm_config
     pwm_config.hard[0].arch = TIMER_ARCH_16_BIT;
     pwm_config.hard[0].timer_index = 0U;
     pwm_config.hard[0].unit = PWM_HARD_TIMER_UNIT_A;
@@ -998,7 +998,7 @@ TEST_F(PwmModule16BitTimerTestSuite, unit_a_behavioral_testing)
 
 TEST_F(PwmModule16BitTimerTestSuite, unit_b_behavioral_testing)
 {
-    // Rewritting parts of pwm_config
+    // Rewriting parts of pwm_config
     pwm_config.hard[0].arch = TIMER_ARCH_16_BIT;
     pwm_config.hard[0].timer_index = 0U;
     pwm_config.hard[0].unit = PWM_HARD_TIMER_UNIT_B;
